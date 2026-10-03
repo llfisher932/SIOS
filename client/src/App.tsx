@@ -4,6 +4,7 @@ import Login from "./views/Login";
 import { AppBar, Divider, Toolbar, Typography } from "@mui/material";
 import BrandMark from "./components/BrandMark";
 import { brand } from "./theme";
+import Forgotpass from "./views/Forgotpass";
 
 function App() {
   const [view, setView] = useState("main");
@@ -24,6 +25,7 @@ function App() {
       </AppBar>
       {view === "main" && <Selector setView={setView} />}
       {view === "login" && <Login />}
+      {view === "forgotpass" && <Forgotpass />}
       {/* {view === "login" && <Login />}
       {view === "login" && <Login />} */}
     </div>
@@ -36,6 +38,7 @@ const Selector = (props: { setView: (view: string) => void }) => {
   return (
     <div>
       <button onClick={() => setView("login")}>Login</button>
+      <button onClick={() => setView("forgotpass")}>Forgot Password</button>
     </div>
   );
 };
