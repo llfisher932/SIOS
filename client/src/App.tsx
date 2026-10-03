@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import Login from "./views/Login";
+import Profile from "./views/Profile";
 import { AppBar, Divider, Toolbar, Typography } from "@mui/material";
 import BrandMark from "./components/BrandMark";
 import { brand } from "./theme";
@@ -26,6 +27,10 @@ function App() {
       {view === "main" && <Selector setView={setView} />}
       {view === "login" && <Login />}
       {view === "forgotpass" && <Forgotpass />}
+      {view === "profileParent" && <Profile username="testUser" role="Parent"/>}
+      {view === "profileStaff" && <Profile username="testUser" role="Staff"/>}
+      {view === "profileAdmin" && <Profile username="testUser" role="Admin"/>}
+      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin"/>}
       {/* {view === "login" && <Login />}
       {view === "login" && <Login />} */}
     </div>
@@ -39,6 +44,10 @@ const Selector = (props: { setView: (view: string) => void }) => {
     <div>
       <button onClick={() => setView("login")}>Login</button>
       <button onClick={() => setView("forgotpass")}>Forgot Password</button>
+      <button onClick={() => setView("profileParent")}>ProfileParent</button>
+      <button onClick={() => setView("profileStaff")}>ProfileStaff</button>
+      <button onClick={() => setView("profileAdmin")}>ProfileAdmin</button>
+      <button onClick={() => setView("profileSuperAdmin")}>ProfileSuperAdmin</button>
     </div>
   );
 };
