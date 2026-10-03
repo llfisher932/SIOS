@@ -5,6 +5,7 @@ import Profile from "./views/Profile";
 import { AppBar, Divider, Toolbar, Typography } from "@mui/material";
 import BrandMark from "./components/BrandMark";
 import { brand } from "./theme";
+import Forgotpass from "./views/Forgotpass";
 
 function App() {
   const [view, setView] = useState("main");
@@ -25,6 +26,7 @@ function App() {
       </AppBar>
       {view === "main" && <Selector setView={setView} />}
       {view === "login" && <Login />}
+      {view === "forgotpass" && <Forgotpass />}
       {view === "profileParent" && <Profile username="testUser" role="Parent"/>}
       {view === "profileStaff" && <Profile username="testUser" role="Staff"/>}
       {view === "profileAdmin" && <Profile username="testUser" role="Admin"/>}
@@ -41,6 +43,7 @@ const Selector = (props: { setView: (view: string) => void }) => {
   return (
     <div>
       <button onClick={() => setView("login")}>Login</button>
+      <button onClick={() => setView("forgotpass")}>Forgot Password</button>
       <button onClick={() => setView("profileParent")}>ProfileParent</button>
       <button onClick={() => setView("profileStaff")}>ProfileStaff</button>
       <button onClick={() => setView("profileAdmin")}>ProfileAdmin</button>
