@@ -17,13 +17,10 @@ import { toast } from "react-toastify";
 import { login } from "../api/api";
 
 type LoginProps = {
-  // Called with credentials once the form passes client-side validation.
-  // Should throw (or reject) with a user-facing message on failure.
   onLogin?: (email: string, password: string) => Promise<unknown>;
   setView: (view: string) => void;
 };
 
-//all fields that could have errors (email + password in login).
 type FieldErrors = {
   email?: string;
   password?: string;
@@ -36,9 +33,6 @@ const Login = ({ onLogin = login, setView }: LoginProps) => {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Uses the browser's built-in constraint validation (type="email" + required).
-  // noValidate is being used to remove the native UI though. This way we can use native validation + MUI's look and feel
-  // probably could swap this whole thing out for zod later.
   const validate = (form: HTMLFormElement): FieldErrors => {
     const errors: FieldErrors = {};
     const emailInput = form.elements.namedItem("email") as HTMLInputElement;
