@@ -22,13 +22,16 @@ type LoginProps = {
   setView: (view: string) => void;
 };
 
+//all fields that could have errors (email + password in login).
 type FieldErrors = {
   email?: string;
   password?: string;
 };
 
+//this whole function is being used to mock the login
 const mockLogin = async (email: string, password: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  await new Promise((resolve) => setTimeout(resolve, 600)); //mimics call to backend delay
+  //for testing purposes password must be password and email must be test@test.com
   if (password !== "password") {
     throw new Error("That email and password combination didn't match our records.");
   }
@@ -46,7 +49,8 @@ const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
   const [submitting, setSubmitting] = useState(false);
 
   // Uses the browser's built-in constraint validation (type="email" + required).
-  // noValidate on the form only suppresses the native popups; validity is still computed.
+  // noValidate is being used to remove the native UI though. This way we can use native validation + MUI's look and feel
+  // probably could swap this whole thing out for zod later.
   const validate = (form: HTMLFormElement): FieldErrors => {
     const errors: FieldErrors = {};
     const emailInput = form.elements.namedItem("email") as HTMLInputElement;
@@ -75,6 +79,7 @@ const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
       await onLogin(email.trim(), password);
       toast.success("Signed in successfully.");
     } catch (err) {
+      //error handling for the onLogin response. Toast lets us display clean user-friendly error messages
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
@@ -150,8 +155,7 @@ const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
             />
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
-              {/* should be updated with real forgot URL */}
-              <Link href="#" variant="body2" onClick={() => setView("forgotpass")}>
+              <Link component="button" type="button" variant="body2" onClick={() => setView("forgotpass")}>
                 Forgot password?
               </Link>
             </Box>
