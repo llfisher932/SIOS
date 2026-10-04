@@ -1,55 +1,42 @@
-import { useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import "./App.css";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
+import RequireAuth from "./auth/RequireAuth";
+import Layout from "./components/Layout";
 import Login from "./views/Login";
-import Profile from "./views/Profile";
-import { AppBar, Divider, Toolbar, Typography } from "@mui/material";
-import BrandMark from "./components/BrandMark";
-import { brand } from "./theme";
 import Forgotpass from "./views/Forgotpass";
+import Home from "./views/Home";
+import Profile from "./views/Profile";
+
+// Profile still uses its own role names; map our account types onto them.
+const ProfileRoute = () => {
+  const { account } = useAuth();
+  if (!account) return null;
+  return <Profile username={account.email} role={account.type === "STAFF" ? "Staff" : "Parent"} />;
+};
 
 function App() {
-  const [view, setView] = useState("main");
-
   return (
-    <div className="App">
-      <AppBar position="static" elevation={0} sx={{ bgcolor: brand.black, borderBottom: `3px solid ${brand.red}` }}>
-        <Toolbar sx={{ gap: 1.5, minHeight: { xs: 56 } }}>
-          <BrandMark />
-          <Typography component="span" sx={{ fontWeight: 700, fontSize: "1rem", letterSpacing: "0.04em" }}>
-            SIOS
-          </Typography>
-          <Divider orientation="vertical" flexItem sx={{ borderColor: "rgba(255,255,255,0.2)", my: 2 }} />
-          <Typography component="span" sx={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.7)" }}>
-            Team Nitro MMA SEALTeam
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      {view === "main" && <Selector setView={setView} />}
-      {view === "login" && <Login setView={setView} />}
-      {view === "forgotpass" && <Forgotpass />}
-      {view === "profileParent" && <Profile username="testUser" role="Parent" />}
-      {view === "profileStaff" && <Profile username="testUser" role="Staff" />}
-      {view === "profileAdmin" && <Profile username="testUser" role="Admin" />}
-      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin" />}
-      {/* {view === "login" && <Login />}
-      {view === "login" && <Login />} */}
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            {/* Public */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<Forgotpass />} />
+
+            {/* Signed-in only */}
+            <Route element={<RequireAuth />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/profile" element={<ProfileRoute />} />
+            </Route>
+
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-const Selector = (props: { setView: (view: string) => void }) => {
-  const { setView } = props;
-
-  return (
-    <div>
-      <button onClick={() => setView("login")}>Login</button>
-      <button onClick={() => setView("forgotpass")}>Forgot Password</button>
-      <button onClick={() => setView("profileParent")}>ProfileParent</button>
-      <button onClick={() => setView("profileStaff")}>ProfileStaff</button>
-      <button onClick={() => setView("profileAdmin")}>ProfileAdmin</button>
-      <button onClick={() => setView("profileSuperAdmin")}>ProfileSuperAdmin</button>
-    </div>
-  );
-};
 
 export default App;

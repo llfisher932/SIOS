@@ -14,19 +14,21 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { toast } from "react-toastify";
-import { login } from "../api/api";
-
-type LoginProps = {
-  onLogin?: (email: string, password: string) => Promise<unknown>;
-  setView: (view: string) => void;
-};
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from "react-router";
+import { useAuth } from "../auth/AuthContext";
 
 type FieldErrors = {
   email?: string;
   password?: string;
 };
 
-const Login = ({ onLogin = login, setView }: LoginProps) => {
+const Login = () => {
+  const { account, login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Where RequireAuth sent us from, so we can go back there after signing in.
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/home";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -58,15 +60,18 @@ const Login = ({ onLogin = login, setView }: LoginProps) => {
 
     setSubmitting(true);
     try {
-      await onLogin(email.trim(), password);
+      await login(email.trim(), password);
       toast.success("Signed in successfully.");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      //error handling for the onLogin response. Toast lets us display clean user-friendly error messages
+      //error handling for the login response. Toast lets us display clean user-friendly error messages
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (account) return <Navigate to={redirectTo} replace />;
 
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "background.default" }}>
@@ -137,7 +142,7 @@ const Login = ({ onLogin = login, setView }: LoginProps) => {
             />
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
-              <Link component="button" type="button" variant="body2" onClick={() => setView("forgotpass")}>
+              <Link component={RouterLink} to="/forgot-password" variant="body2">
                 Forgot password?
               </Link>
             </Box>
