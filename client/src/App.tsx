@@ -32,12 +32,12 @@ function App() {
         </Toolbar>
       </AppBar>
       {view === "main" && <Selector setView={setView} />}
-      {view === "login" && <Login />}
+      {view === "login" && <Login setView={setView} />}
       {view === "forgotpass" && <Forgotpass />}
       {view === "profileParent" && <Profile username="testUser" role="Parent" onLogout={handleLogout}/>}
       {view === "profileStaff" && <Profile username="testUser" role="Staff" onLogout={handleLogout}/>}
       {view === "profileAdmin" && <Profile username="testUser" role="Admin" onLogout={handleLogout}/>}
-      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin" onLogout={handleLogout}/>}
+      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin" onLogout={handleLogout}/>
       {/* {view === "login" && <Login />}
       {view === "login" && <Login />} */}
     </div>

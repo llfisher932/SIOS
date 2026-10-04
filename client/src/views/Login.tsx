@@ -19,6 +19,7 @@ type LoginProps = {
   // Called with credentials once the form passes client-side validation.
   // Should throw (or reject) with a user-facing message on failure.
   onLogin?: (email: string, password: string) => Promise<void>;
+  setView: (view: string) => void;
 };
 
 type FieldErrors = {
@@ -37,7 +38,7 @@ const mockLogin = async (email: string, password: string) => {
   console.log("Signed in as", email);
 };
 
-const Login = ({ onLogin = mockLogin }: LoginProps) => {
+const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -150,7 +151,7 @@ const Login = ({ onLogin = mockLogin }: LoginProps) => {
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
               {/* should be updated with real forgot URL */}
-              <Link href="#" variant="body2">
+              <Link href="#" variant="body2" onClick={() => setView("forgotpass")}>
                 Forgot password?
               </Link>
             </Box>
