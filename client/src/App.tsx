@@ -10,6 +10,13 @@ import Forgotpass from "./views/Forgotpass";
 function App() {
   const [view, setView] = useState("main");
 
+  // Clears the session (server call goes here once the backend exists),
+  // then returns the user to the sign-in screen.
+  const handleLogout = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    setView("login");
+  };
+
   return (
     <div className="App">
       <AppBar position="static" elevation={0} sx={{ bgcolor: brand.black, borderBottom: `3px solid ${brand.red}` }}>
@@ -27,10 +34,10 @@ function App() {
       {view === "main" && <Selector setView={setView} />}
       {view === "login" && <Login setView={setView} />}
       {view === "forgotpass" && <Forgotpass />}
-      {view === "profileParent" && <Profile username="testUser" role="Parent" />}
-      {view === "profileStaff" && <Profile username="testUser" role="Staff" />}
-      {view === "profileAdmin" && <Profile username="testUser" role="Admin" />}
-      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin" />}
+      {view === "profileParent" && <Profile username="testUser" role="Parent" onLogout={handleLogout}/>}
+      {view === "profileStaff" && <Profile username="testUser" role="Staff" onLogout={handleLogout}/>}
+      {view === "profileAdmin" && <Profile username="testUser" role="Admin" onLogout={handleLogout}/>}
+      {view === "profileSuperAdmin" && <Profile username="testUser" role="SuperAdmin" onLogout={handleLogout}/>}
       {/* {view === "login" && <Login />}
       {view === "login" && <Login />} */}
     </div>
