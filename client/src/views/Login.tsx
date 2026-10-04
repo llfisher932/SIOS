@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import {
   Box,
   Button,
@@ -14,11 +14,12 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { toast } from "react-toastify";
+import { login } from "../api/api";
 
 type LoginProps = {
   // Called with credentials once the form passes client-side validation.
   // Should throw (or reject) with a user-facing message on failure.
-  onLogin?: (email: string, password: string) => Promise<void>;
+  onLogin?: (email: string, password: string) => Promise<unknown>;
   setView: (view: string) => void;
 };
 
@@ -28,20 +29,7 @@ type FieldErrors = {
   password?: string;
 };
 
-//this whole function is being used to mock the login
-const mockLogin = async (email: string, password: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 600)); //mimics call to backend delay
-  //for testing purposes password must be password and email must be test@test.com
-  if (password !== "password") {
-    throw new Error("That email and password combination didn't match our records.");
-  }
-  if (email !== "test@test.com") {
-    throw new Error("That email and password combination didn't match our records.");
-  }
-  console.log("Signed in as", email);
-};
-
-const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
+const Login = ({ onLogin = login, setView }: LoginProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +55,7 @@ const Login = ({ onLogin = mockLogin, setView }: LoginProps) => {
     return errors;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors = validate(e.currentTarget);
