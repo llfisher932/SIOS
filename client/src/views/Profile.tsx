@@ -1,19 +1,43 @@
 
+import { useState } from "react";
 import {
   Box,
   Button,
+  CircularProgress,
   Divider,
   Paper,
-  
+
 } from "@mui/material";
+import { Logout } from "@mui/icons-material";
+import { toast } from "react-toastify";
 
 
 type ProfileProps = {
     username: string;
     role: string;
+    // Called when the user clicks Log out. Should throw (or reject) with a
+    // user-facing message on failure; the parent handles leaving this view.
+    onLogout?: () => Promise<void>;
 }
 
-const Profile = ({username, role}: ProfileProps) => {
+const mockLogout = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    console.log("Signed out");
+};
+
+const Profile = ({username, role, onLogout = mockLogout}: ProfileProps) => {
+    const [signingOut, setSigningOut] = useState(false);
+
+    const handleLogout = async () => {
+        setSigningOut(true);
+        try {
+            await onLogout();
+            toast.success("Signed out successfully.");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+            setSigningOut(false);
+        }
+    };
 
     let actions;
     switch(role){
@@ -75,7 +99,16 @@ const Profile = ({username, role}: ProfileProps) => {
                     borderRadius: 2,
                     boxShadow: "0 1px 3px rgba(31, 28, 26, 0.06)",
                 }}>
-                    <h1>Hello, {username}!</h1>
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+                        <h1>Hello, {username}!</h1>
+                        <Button
+                            variant="outlined"
+                            disabled={signingOut}
+                            onClick={handleLogout}
+                            startIcon={signingOut ? <CircularProgress size={18} color="inherit" /> : <Logout />}>
+                            {signingOut ? "Signing out…" : "Log out"}
+                        </Button>
+                    </Box>
                     <Paper elevation={2}
                     sx={{
                         borderRadius: 2,
