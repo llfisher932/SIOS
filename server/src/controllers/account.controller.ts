@@ -24,3 +24,15 @@ export async function login(req: Request, res: Response) {
   res.cookie(SESSION_COOKIE, result.token, sessionCookieOptions);
   res.json({ account: result.account });
 }
+
+// Lets the client restore who's signed in (e.g. after a page refresh) from the session cookie.
+export async function session(req: Request, res: Response) {
+  const token: unknown = req.cookies?.[SESSION_COOKIE];
+  const account = typeof token === "string" ? await accountModel.getSessionAccount(token) : null;
+
+  if (!account) {
+    res.status(401).json({ error: "Not signed in." });
+    return;
+  }
+  res.json({ account });
+}

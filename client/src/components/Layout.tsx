@@ -1,18 +1,12 @@
-import { AppBar, Box, Button, Divider, Toolbar, Typography } from "@mui/material";
-import { Outlet, useNavigate } from "react-router";
+import { AppBar, Divider, Toolbar, Typography } from "@mui/material";
+import { Outlet } from "react-router";
 import BrandMark from "./BrandMark";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
 
 // Shared page frame: brand header on every page, plus account info once signed in.
 const Layout = () => {
-  const { account, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
+  const { account } = useAuth();
 
   return (
     <div className="App">
@@ -30,20 +24,11 @@ const Layout = () => {
           </Typography>
 
           {account && (
-            <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography
-                component="span"
-                sx={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.7)", display: { xs: "none", md: "inline" } }}>
-                {account.email}
-              </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={handleSignOut}
-                sx={{ color: "#fff", borderColor: "rgba(255,255,255,0.4)", "&:hover": { borderColor: "#fff" } }}>
-                Sign out
-              </Button>
-            </Box>
+            <Typography
+              component="span"
+              sx={{ ml: "auto", fontSize: "0.8125rem", color: "rgba(255,255,255,0.7)", display: { xs: "none", md: "inline" } }}>
+              {account.email}
+            </Typography>
           )}
         </Toolbar>
       </AppBar>

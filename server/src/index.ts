@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { errorHandler, notFound } from "./middleware/middleware.js";
 import loginRouter from "./router/login.router.js";
 
@@ -14,6 +15,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/login", loginRouter);
 

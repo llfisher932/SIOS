@@ -1,7 +1,7 @@
 import prisma from "../db.js";
 import type { AccountStatus, AccountType } from "../generated/prisma/client.js";
 import { verifyPassword } from "../auth/password.js";
-import { createSessionToken } from "../auth/session.js";
+import { createSessionToken, verifySessionToken } from "../auth/session.js";
 
 export type LoginResult =
   | { ok: true; account: { id: number; type: AccountType; email: string }; token: string }
@@ -32,6 +32,21 @@ export async function login(email: string, password: string): Promise<LoginResul
 
   const token = await createSessionToken(account.id, account.type);
   return { ok: true, account: { id: account.id, type: account.type, email: account.email }, token };
+}
+
+// Restores a session from its token. Re-checks the database so a deactivated
+// account loses access immediately, even if its token hasn't expired yet.
+export async function getSessionAccount(token: string) {
+  const accountId = await verifySessionToken(token);
+  if (accountId === null) return null;
+
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: { id: true, type: true, email: true, status: true },
+  });
+  if (!account || account.status !== "ACTIVE") return null;
+
+  return { id: account.id, type: account.type, email: account.email };
 }
 
 //needed for testing now

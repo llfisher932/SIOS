@@ -23,11 +23,11 @@ type FieldErrors = {
 };
 
 const Login = () => {
-  const { account, login } = useAuth();
+  const { account, loading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   // Where RequireAuth sent us from, so we can go back there after signing in.
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/home";
+  const redirectTo = location.state?.from ?? "/home";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,6 +71,8 @@ const Login = () => {
     }
   };
 
+  // Don't flash the form while we check for an existing session.
+  if (loading) return null;
   if (account) return <Navigate to={redirectTo} replace />;
 
   return (

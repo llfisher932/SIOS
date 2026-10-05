@@ -1,6 +1,6 @@
 import "dotenv/config";
 import type { CookieOptions } from "express";
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 import type { AccountType } from "../generated/prisma/client.js";
 
 export const SESSION_COOKIE = "sios_session";
@@ -19,6 +19,17 @@ export function createSessionToken(accountId: number, type: AccountType): Promis
     .setIssuedAt()
     .setExpirationTime(`${SESSION_HOURS}h`)
     .sign(secret);
+}
+
+// Returns the account id from a valid token, or null if it's missing, expired, or tampered with.
+export async function verifySessionToken(token: string): Promise<number | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
+    const accountId = Number(payload.sub);
+    return Number.isInteger(accountId) ? accountId : null;
+  } catch {
+    return null;
+  }
 }
 
 // httpOnly keeps the token away from page JavaScript; secure is required once we're on HTTPS.
