@@ -29,6 +29,8 @@ In your Supabase project, click **Connect** (top of the dashboard) and fill in `
 
 Replace `[YOUR-PASSWORD]` in both URLs with your database password.
 
+On Vercel, the Supabase integration provides `POSTGRES_PRISMA_URL` and `POSTGRES_URL_NON_POOLING`, which the server uses when `DATABASE_URL` / `DIRECT_URL` aren't set. Only `JWT_SECRET` needs adding there by hand.
+
 ### 3. Install, migrate, seed
 
 ```bash
