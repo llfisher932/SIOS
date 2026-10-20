@@ -17,7 +17,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/login", loginRouter);
+// Everything lives under /api: on Vercel, the /api/* rewrite forwards the full path unchanged.
+const api = express.Router();
+api.use("/login", loginRouter);
+app.use("/api", api);
 
 app.use(notFound);
 app.use(errorHandler);
