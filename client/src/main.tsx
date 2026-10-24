@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App />
-      <ToastContainer position="top-right" autoClose={5000} newestOnTop pauseOnFocusLoss={false} transition={Slide} />
+      <ToastContainer position="bottom-center" autoClose={5000} newestOnTop pauseOnFocusLoss={false} transition={Slide} />
     </ThemeProvider>
   </StrictMode>,
 );

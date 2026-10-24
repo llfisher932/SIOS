@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppBar, Box, Button, Divider, ListItemIcon, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
-import { AccountCircle, ExpandMore, Person } from "@mui/icons-material";
+import { AccountCircle, ExpandMore, Logout, Person } from "@mui/icons-material";
+import { toast } from "react-toastify";
 import { Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
 import { brand } from "../theme";
@@ -8,10 +9,21 @@ import { useAuth } from "../auth/AuthContext";
 
 // Shared page frame: brand header on every page, plus account info once signed in.
 const Layout = () => {
-  const { account } = useAuth();
+  const { account, logout } = useAuth();
   const navigate = useNavigate();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const closeMenu = () => setMenuAnchor(null);
+
+  const handleLogout = async () => {
+    closeMenu();
+    try {
+      await logout();
+    } catch {
+      // Still signed out locally; the cookie expires on its own.
+      toast.error("Couldn't reach the server, but you've been signed out on this device.");
+    }
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="App">
@@ -60,6 +72,13 @@ const Layout = () => {
                     <Person fontSize="small" />
                   </ListItemIcon>
                   Profile
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  Log out
                 </MenuItem>
               </Menu>
             </>

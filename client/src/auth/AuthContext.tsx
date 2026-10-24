@@ -8,6 +8,7 @@ type AuthContextValue = {
   // True until we've asked the server whether the session cookie is still valid.
   loading: boolean;
   login: (email: string, password: string) => Promise<Account>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -36,7 +37,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return signedIn;
   };
 
-  return <AuthContext.Provider value={{ account, loading, login }}>{children}</AuthContext.Provider>;
+  // Clears the cookie on the server, then the local account. The local state is
+  // cleared even if the request fails, so the user is never left looking signed in.
+  const logout = async () => {
+    try {
+      await api.logout();
+    } finally {
+      setAccount(null);
+    }
+  };
+
+  return <AuthContext.Provider value={{ account, loading, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

@@ -62,3 +62,8 @@ export async function getSession(): Promise<Account | null> {
     throw err;
   }
 }
+
+// Clears the session cookie on the server.
+export async function logout(): Promise<void> {
+  await request<null>("/login/logout", { method: "POST" });
+}

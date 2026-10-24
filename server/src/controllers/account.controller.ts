@@ -36,3 +36,10 @@ export async function session(req: Request, res: Response) {
   }
   res.json({ account });
 }
+
+// Ends the session by clearing the cookie. clearCookie needs the same path/flags it was set with (minus maxAge).
+export function logout(_req: Request, res: Response) {
+  const { maxAge: _maxAge, ...clearOptions } = sessionCookieOptions;
+  res.clearCookie(SESSION_COOKIE, clearOptions);
+  res.status(204).end();
+}
