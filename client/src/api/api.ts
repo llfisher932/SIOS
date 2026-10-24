@@ -1,5 +1,6 @@
 // All calls to the SIOS server go through this file.
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+// Same-origin by default: Vercel routes /api/* to the server, and the Vite dev proxy does the same locally.
+const API_URL = `${import.meta.env.VITE_API_URL ?? ""}/api`;
 
 export type Account = {
   id: number;
