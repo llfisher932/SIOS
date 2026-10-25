@@ -8,7 +8,7 @@ export async function verifyPassword(hash: string, password: string): Promise<bo
   try {
     return await argon2.verify(hash, password);
   } catch {
-    // Malformed hash in the DB so treat as a failed match.
+    // Malformed stored hash: treat as a mismatch.
     return false;
   }
 }

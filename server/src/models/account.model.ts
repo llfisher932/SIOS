@@ -7,21 +7,19 @@ export type LoginResult =
   | { ok: true; account: { id: number; type: AccountType; email: string }; token: string }
   | { ok: false; reason: "INVALID_CREDENTIALS" | "INACTIVE" };
 
-// Emails are stored lowercased so the unique constraint is effectively case-insensitive.
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-// Includes passwordHash for the login check. Never send this result to the client.
+// Includes passwordHash: never send this to the client.
 export function findAccountByEmail(email: string) {
   return prisma.account.findUnique({ where: { email: normalizeEmail(email) } });
 }
 
-// Checks credentials and account status, and issues a session token on success.
 export async function login(email: string, password: string): Promise<LoginResult> {
   const account = await findAccountByEmail(email);
 
-  // Unknown email and wrong password are the same failure so we don't reveal which emails exist.
+  // Same failure for both cases, so emails can't be probed.
   if (!account || !(await verifyPassword(account.passwordHash, password))) {
     return { ok: false, reason: "INVALID_CREDENTIALS" };
   }
@@ -34,17 +32,21 @@ export async function login(email: string, password: string): Promise<LoginResul
   return { ok: true, account: { id: account.id, type: account.type, email: account.email }, token };
 }
 
-// Restores a session from its token. Re-checks the database so a deactivated
-// account loses access immediately, even if its token hasn't expired yet.
+// Re-checks the database so deactivation takes effect immediately.
 export async function getSessionAccount(token: string) {
-  const accountId = await verifySessionToken(token);
-  if (accountId === null) return null;
+  const session = await verifySessionToken(token);
+  if (!session) return null;
 
   const account = await prisma.account.findUnique({
-    where: { id: accountId },
-    select: { id: true, type: true, email: true, status: true },
+    where: { id: session.accountId },
+    select: { id: true, type: true, email: true, status: true, passwordChangedAt: true },
   });
   if (!account || account.status !== "ACTIVE") return null;
+
+  // Reject sessions issued before the last password change (iat is in seconds).
+  if (account.passwordChangedAt && session.issuedAt < Math.floor(account.passwordChangedAt.getTime() / 1000)) {
+    return null;
+  }
 
   return { id: account.id, type: account.type, email: account.email };
 }

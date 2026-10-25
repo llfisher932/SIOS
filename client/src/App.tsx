@@ -5,6 +5,7 @@ import RequireAuth from "./auth/RequireAuth";
 import Layout from "./components/Layout";
 import Login from "./views/Login";
 import Forgotpass from "./views/Forgotpass";
+import Forgotpassreset from "./views/Forgotpassreset";
 import Home from "./views/Home";
 import Profile from "./views/Profile";
 
@@ -24,6 +25,7 @@ function App() {
             {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<Forgotpass />} />
+            <Route path="/reset-password" element={<Forgotpassreset />} />
 
             {/* Signed-in only */}
             <Route element={<RequireAuth />}>

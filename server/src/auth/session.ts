@@ -21,18 +21,18 @@ export function createSessionToken(accountId: number, type: AccountType): Promis
     .sign(secret);
 }
 
-// Returns the account id from a valid token, or null if it's missing, expired, or tampered with.
-export async function verifySessionToken(token: string): Promise<number | null> {
+// Null if the token is missing, expired, or tampered with.
+export async function verifySessionToken(token: string): Promise<{ accountId: number; issuedAt: number } | null> {
   try {
     const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
     const accountId = Number(payload.sub);
-    return Number.isInteger(accountId) ? accountId : null;
+    if (!Number.isInteger(accountId) || typeof payload.iat !== "number") return null;
+    return { accountId, issuedAt: payload.iat };
   } catch {
     return null;
   }
 }
 
-// httpOnly keeps the token away from page JavaScript; secure is required once we're on HTTPS.
 export const sessionCookieOptions: CookieOptions = {
   httpOnly: true,
   sameSite: "lax",

@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorHandler, notFound } from "./middleware/middleware.js";
 import loginRouter from "./router/login.router.js";
+import passwordRouter from "./router/password.router.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -10,16 +11,17 @@ const PORT = process.env.PORT ?? 3000;
 app.use(
   cors({
     origin: true, // Accept all origins
-    credentials: true, // Lets the browser store the session cookie from cross-origin requests
+    credentials: true, // allow the session cookie
   }),
 );
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Everything lives under /api: on Vercel, the /api/* rewrite forwards the full path unchanged.
+// Matches the /api/* rewrite in vercel.json.
 const api = express.Router();
 api.use("/login", loginRouter);
+api.use("/password", passwordRouter);
 app.use("/api", api);
 
 app.use(notFound);

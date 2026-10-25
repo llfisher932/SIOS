@@ -7,7 +7,6 @@ import BrandMark from "./BrandMark";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
 
-// Shared page frame: brand header on every page, plus account info once signed in.
 const Layout = () => {
   const { account, logout } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +18,6 @@ const Layout = () => {
     try {
       await logout();
     } catch {
-      // Still signed out locally; the cookie expires on its own.
       toast.error("Couldn't reach the server, but you've been signed out on this device.");
     }
     navigate("/login", { replace: true });

@@ -25,7 +25,6 @@ export async function login(req: Request, res: Response) {
   res.json({ account: result.account });
 }
 
-// Lets the client restore who's signed in (e.g. after a page refresh) from the session cookie.
 export async function session(req: Request, res: Response) {
   const token: unknown = req.cookies?.[SESSION_COOKIE];
   const account = typeof token === "string" ? await accountModel.getSessionAccount(token) : null;
@@ -37,7 +36,7 @@ export async function session(req: Request, res: Response) {
   res.json({ account });
 }
 
-// Ends the session by clearing the cookie. clearCookie needs the same path/flags it was set with (minus maxAge).
+// clearCookie needs the same options the cookie was set with, minus maxAge.
 export function logout(_req: Request, res: Response) {
   const { maxAge: _maxAge, ...clearOptions } = sessionCookieOptions;
   res.clearCookie(SESSION_COOKIE, clearOptions);
