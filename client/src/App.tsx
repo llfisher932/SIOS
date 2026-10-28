@@ -1,20 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import "./App.css";
-import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { AuthProvider } from "./auth/AuthContext";
 import RequireAuth from "./auth/RequireAuth";
 import Layout from "./components/Layout";
 import Login from "./views/Login";
 import Forgotpass from "./views/Forgotpass";
 import Forgotpassreset from "./views/Forgotpassreset";
 import Home from "./views/Home";
-import Profile from "./views/Profile";
-
-// Profile still uses its own role names; map our account types onto them.
-const ProfileRoute = () => {
-  const { account } = useAuth();
-  if (!account) return null;
-  return <Profile username={account.email} role={account.type === "STAFF" ? "Staff" : "Parent"} />;
-};
+import Profiles from "./views/Profiles";
+import ProfileDetail from "./views/ProfileDetail";
 
 function App() {
   return (
@@ -30,7 +24,9 @@ function App() {
             {/* Signed-in only */}
             <Route element={<RequireAuth />}>
               <Route path="/home" element={<Home />} />
-              <Route path="/profile" element={<ProfileRoute />} />
+              <Route path="/profile" element={<ProfileDetail />} />
+              <Route path="/profiles" element={<Profiles />} />
+              <Route path="/profiles/:id" element={<ProfileDetail />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/home" replace />} />

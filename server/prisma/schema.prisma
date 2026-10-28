@@ -21,6 +21,12 @@ enum AccountStatus {
   PENDING //Submitted application and awaiting admin approval
 }
 
+enum StaffRole {
+  STAFF
+  ADMIN
+  SUPER_ADMIN
+}
+
 model Account {
   id                Int           @id @default(autoincrement())
   type              AccountType
@@ -47,20 +53,44 @@ model ParentProfile {
   account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   firstName String
   lastName  String
+  phone     String? // 10 digits, no formatting
+  address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  contacts Contact[]
 
   @@map("parent_profiles")
 }
 
+// Emergency contacts and pickup people. They don't have logins.
+model Contact {
+  id               Int           @id @default(autoincrement())
+  parentProfileId  Int
+  parentProfile    ParentProfile @relation(fields: [parentProfileId], references: [id], onDelete: Cascade)
+  firstName        String
+  lastName         String
+  relationship     String
+  phone            String // 10 digits, no formatting
+  authorizedPickup Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([parentProfileId])
+  @@map("contacts")
+}
+
 model StaffProfile {
-  id        Int      @id @default(autoincrement())
-  accountId Int      @unique
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id        Int       @id @default(autoincrement())
+  accountId Int       @unique
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   firstName String
   lastName  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      StaffRole @default(STAFF)
+  site      String?
+  team      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("staff_profiles")
 }

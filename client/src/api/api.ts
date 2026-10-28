@@ -7,7 +7,20 @@ export type Account = {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  role: StaffRole | null; // staff only
 };
+
+export type StaffRole = "STAFF" | "ADMIN" | "SUPER_ADMIN";
+
+export const ROLE_LABELS: Record<StaffRole, string> = {
+  STAFF: "Staff",
+  ADMIN: "Admin",
+  SUPER_ADMIN: "Super Admin",
+};
+
+export function canViewOtherProfiles(account: Account): boolean {
+  return account.role === "ADMIN" || account.role === "SUPER_ADMIN";
+}
 
 // Falls back to email for accounts without a profile.
 export function displayName(account: Account): string {
@@ -83,4 +96,64 @@ export async function resetPassword(token: string, password: string): Promise<st
     body: JSON.stringify({ token, password }),
   });
   return message;
+}
+
+export type AccountStatus = "ACTIVE" | "INACTIVE" | "PENDING";
+
+export type Contact = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  relationship: string;
+  phone: string;
+  authorizedPickup: boolean;
+};
+
+// Fields the viewer isn't allowed to see are left out.
+export type ParentProfile = {
+  kind: "PARENT";
+  accountId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  address?: string | null;
+  status?: AccountStatus;
+  contacts: Contact[];
+};
+
+export type StaffProfile = {
+  kind: "STAFF";
+  accountId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: StaffRole;
+  site: string | null;
+  team: string | null;
+  status?: AccountStatus;
+};
+
+export type ProfileListItem = {
+  accountId: number;
+  kind: "PARENT" | "STAFF";
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: StaffRole | null;
+};
+
+export async function getMyProfile(): Promise<ParentProfile | StaffProfile> {
+  const { profile } = await request<{ profile: ParentProfile | StaffProfile }>("/profiles/me");
+  return profile;
+}
+
+export async function listProfiles(): Promise<ProfileListItem[]> {
+  const { profiles } = await request<{ profiles: ProfileListItem[] }>("/profiles");
+  return profiles;
+}
+
+export async function getProfile(accountId: number): Promise<ParentProfile | StaffProfile> {
+  const { profile } = await request<{ profile: ParentProfile | StaffProfile }>(`/profiles/${accountId}`);
+  return profile;
 }

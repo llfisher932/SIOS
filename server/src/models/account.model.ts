@@ -1,5 +1,5 @@
 import prisma from "../db.js";
-import type { AccountStatus, AccountType } from "../generated/prisma/client.js";
+import type { AccountStatus, AccountType, StaffRole } from "../generated/prisma/client.js";
 import { verifyPassword } from "../auth/password.js";
 import { createSessionToken, verifySessionToken } from "../auth/session.js";
 
@@ -10,6 +10,7 @@ export type AccountSummary = {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  role: StaffRole | null; // staff only
 };
 
 export type LoginResult =
@@ -17,7 +18,10 @@ export type LoginResult =
   | { ok: false; reason: "INVALID_CREDENTIALS" | "INACTIVE" };
 
 const nameSelect = { select: { firstName: true, lastName: true } } as const;
-const profileInclude = { parentProfile: nameSelect, staffProfile: nameSelect } as const;
+const profileInclude = {
+  parentProfile: nameSelect,
+  staffProfile: { select: { firstName: true, lastName: true, role: true } },
+} as const;
 
 type Name = { firstName: string; lastName: string } | null;
 
@@ -26,7 +30,7 @@ function toAccountSummary(account: {
   type: AccountType;
   email: string;
   parentProfile: Name;
-  staffProfile: Name;
+  staffProfile: (Name & { role: StaffRole }) | null;
 }): AccountSummary {
   const profile = account.type === "PARENT" ? account.parentProfile : account.staffProfile;
   return {
@@ -35,6 +39,7 @@ function toAccountSummary(account: {
     email: account.email,
     firstName: profile?.firstName ?? null,
     lastName: profile?.lastName ?? null,
+    role: account.type === "STAFF" ? (account.staffProfile?.role ?? null) : null,
   };
 }
 

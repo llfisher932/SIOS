@@ -4,9 +4,10 @@ import { AccountCircle, ExpandMore, Logout, Person } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
+import NavMenu from "./NavMenu";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
-import { displayName } from "../api/api";
+import { canViewOtherProfiles, displayName } from "../api/api";
 
 const Layout = () => {
   const { account, logout } = useAuth();
@@ -38,6 +39,16 @@ const Layout = () => {
             sx={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.7)", display: { xs: "none", sm: "inline" } }}>
             Team Nitro MMA SEALTeam
           </Typography>
+
+          {account && (
+            <Box component="nav" sx={{ display: "flex", gap: 0.5, ml: { xs: 0, sm: 2 }, overflowX: "auto", scrollbarWidth: "none" }}>
+              <NavMenu label="Student Data" items={[]} />
+              <NavMenu label="Forms" items={[]} />
+              {canViewOtherProfiles(account) && (
+                <NavMenu label="Profile Management" items={[{ label: "All profiles", to: "/profiles" }]} />
+              )}
+            </Box>
+          )}
 
           {account && (
             <>
