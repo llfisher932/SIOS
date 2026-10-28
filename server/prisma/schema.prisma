@@ -32,9 +32,37 @@ model Account {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
+  // Exactly one, matching type.
+  parentProfile ParentProfile?
+  staffProfile  StaffProfile?
+
   passwordResetTokens PasswordResetToken[]
 
   @@map("accounts")
+}
+
+model ParentProfile {
+  id        Int      @id @default(autoincrement())
+  accountId Int      @unique
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("parent_profiles")
+}
+
+model StaffProfile {
+  id        Int      @id @default(autoincrement())
+  accountId Int      @unique
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("staff_profiles")
 }
 
 // Only a hash of each token is stored.

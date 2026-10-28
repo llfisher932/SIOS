@@ -5,7 +5,15 @@ export type Account = {
   id: number;
   type: "STAFF" | "PARENT";
   email: string;
+  firstName: string | null;
+  lastName: string | null;
 };
+
+// Falls back to email for accounts without a profile.
+export function displayName(account: Account): string {
+  const name = [account.firstName, account.lastName].filter(Boolean).join(" ");
+  return name || account.email;
+}
 
 export class ApiError extends Error {
   status: number;

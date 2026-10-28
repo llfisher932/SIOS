@@ -6,6 +6,7 @@ import { Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
+import { displayName } from "../api/api";
 
 const Layout = () => {
   const { account, logout } = useAuth();
@@ -50,7 +51,7 @@ const Layout = () => {
                 endIcon={<ExpandMore />}
                 sx={{ ml: "auto", color: "rgba(255,255,255,0.85)", fontSize: "0.8125rem", fontWeight: 500 }}>
                 <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                  {account.email}
+                  {displayName(account)}
                 </Box>
               </Button>
               <Menu
@@ -61,6 +62,15 @@ const Layout = () => {
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
                 slotProps={{ list: { "aria-labelledby": "account-menu-button" } }}>
+                <Box sx={{ px: 2, pt: 0.5, pb: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {displayName(account)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {account.email}
+                  </Typography>
+                </Box>
+                <Divider />
                 <MenuItem
                   onClick={() => {
                     closeMenu();
