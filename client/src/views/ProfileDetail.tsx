@@ -45,7 +45,7 @@ const ProfileDetail = () => {
           variant="body2"
           sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, alignSelf: "flex-start" }}>
           <ArrowBack fontSize="small" />
-          All profiles
+          Profile search
         </Link>
       )}
       {!profile ? (

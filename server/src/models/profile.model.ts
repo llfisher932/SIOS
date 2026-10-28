@@ -1,5 +1,5 @@
 import prisma from "../db.js";
-import type { AccountStatus, StaffRole } from "../generated/prisma/client.js";
+import type { AccountStatus, AccountType, Prisma, StaffRole } from "../generated/prisma/client.js";
 import type { AccountSummary } from "./account.model.js";
 
 // Who is looking decides which fields come back:
@@ -43,11 +43,20 @@ export type StaffProfileView = {
 
 export type ProfileListItem = {
   accountId: number;
-  kind: "PARENT" | "STAFF";
+  kind: AccountType;
   firstName: string;
   lastName: string;
   email: string;
   role: StaffRole | null;
+  site: string | null;
+  team: string | null;
+  status?: AccountStatus; // super admins only
+};
+
+export type ProfileFilters = {
+  q: string | undefined;
+  type: AccountType | undefined;
+  status: AccountStatus | undefined;
 };
 
 type Denied = { ok: false; reason: "FORBIDDEN" | "NOT_FOUND" };
@@ -129,19 +138,38 @@ export async function getOwnProfile(
   return profile ? { ok: true, profile } : { ok: false, reason: "NOT_FOUND" };
 }
 
-// Admins see parents; super admins see parents and staff.
-export async function listProfiles(viewer: AccountSummary): Promise<{ ok: true; profiles: ProfileListItem[] } | Denied> {
+// Every word must match the email or a first/last name, so "pat par" finds Pat Parent.
+function matchesTerm(term: string): Prisma.AccountWhereInput {
+  const contains = { contains: term, mode: "insensitive" } as const;
+  return {
+    OR: [
+      { email: contains },
+      { parentProfile: { OR: [{ firstName: contains }, { lastName: contains }] } },
+      { staffProfile: { OR: [{ firstName: contains }, { lastName: contains }] } },
+    ],
+  };
+}
+
+// Admins search parents only, without status; super admins search everyone and can filter.
+export async function searchProfiles(
+  viewer: AccountSummary,
+  filters: ProfileFilters,
+): Promise<{ ok: true; profiles: ProfileListItem[] } | Denied> {
   if (!canViewOtherProfiles(viewer)) return { ok: false, reason: "FORBIDDEN" };
-  const includeStaff = viewerRole(viewer) === "SUPER_ADMIN";
+  const superAdmin = viewerRole(viewer) === "SUPER_ADMIN";
+  const type = superAdmin ? filters.type : "PARENT";
+  const status = superAdmin ? filters.status : undefined;
+  const terms = filters.q?.trim().split(/\s+/).filter(Boolean) ?? [];
 
   const accounts = await prisma.account.findMany({
-    where: includeStaff ? {} : { type: "PARENT" },
+    where: { ...(type && { type }), ...(status && { status }), AND: terms.map(matchesTerm) },
     select: {
       id: true,
       type: true,
       email: true,
+      status: true,
       parentProfile: { select: { firstName: true, lastName: true } },
-      staffProfile: { select: { firstName: true, lastName: true, role: true } },
+      staffProfile: { select: { firstName: true, lastName: true, role: true, site: true, team: true } },
     },
   });
 
@@ -156,6 +184,9 @@ export async function listProfiles(viewer: AccountSummary): Promise<{ ok: true; 
         lastName: profile.lastName,
         email: a.email,
         role: a.staffProfile?.role ?? null,
+        site: a.staffProfile?.site ?? null,
+        team: a.staffProfile?.team ?? null,
+        ...(superAdmin && { status: a.status }),
       },
     ];
   });

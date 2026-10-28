@@ -7,7 +7,7 @@ import Login from "./views/Login";
 import Forgotpass from "./views/Forgotpass";
 import Forgotpassreset from "./views/Forgotpassreset";
 import Home from "./views/Home";
-import Profiles from "./views/Profiles";
+import ProfileSearch from "./views/ProfileSearch";
 import ProfileDetail from "./views/ProfileDetail";
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
             <Route element={<RequireAuth />}>
               <Route path="/home" element={<Home />} />
               <Route path="/profile" element={<ProfileDetail />} />
-              <Route path="/profiles" element={<Profiles />} />
+              <Route path="/profiles" element={<ProfileSearch />} />
               <Route path="/profiles/:id" element={<ProfileDetail />} />
             </Route>
 

@@ -6,7 +6,7 @@ const router = Router();
 
 router.use(requireAuth);
 router.get("/me", profileController.getOwnProfile);
-router.get("/", profileController.listProfiles);
+router.get("/", profileController.searchProfiles);
 router.get("/:id", profileController.getProfile);
 
 export default router;
