@@ -2,11 +2,11 @@ import { useState } from "react";
 import { AppBar, Box, Button, Divider, ListItemIcon, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
 import { AccountCircle, ExpandMore, Logout, Person } from "@mui/icons-material";
 import { toast } from "react-toastify";
-import { Outlet, useNavigate } from "react-router";
+import { Link as RouterLink, Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
-import { displayName } from "../api/api";
+import { canViewOtherProfiles, displayName } from "../api/api";
 
 const Layout = () => {
   const { account, logout } = useAuth();
@@ -38,6 +38,15 @@ const Layout = () => {
             sx={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.7)", display: { xs: "none", sm: "inline" } }}>
             Team Nitro MMA SEALTeam
           </Typography>
+
+          {account && canViewOtherProfiles(account) && (
+            <Button
+              component={RouterLink}
+              to="/profiles"
+              sx={{ ml: { xs: 0, sm: 2 }, color: "rgba(255,255,255,0.85)", fontSize: "0.8125rem", fontWeight: 500 }}>
+              Profiles
+            </Button>
+          )}
 
           {account && (
             <>
