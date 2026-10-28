@@ -2,8 +2,9 @@ import { useState } from "react";
 import { AppBar, Box, Button, Divider, ListItemIcon, Menu, MenuItem, Toolbar, Typography } from "@mui/material";
 import { AccountCircle, ExpandMore, Logout, Person } from "@mui/icons-material";
 import { toast } from "react-toastify";
-import { Link as RouterLink, Outlet, useNavigate } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
+import NavMenu from "./NavMenu";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
 import { canViewOtherProfiles, displayName } from "../api/api";
@@ -39,13 +40,14 @@ const Layout = () => {
             Team Nitro MMA SEALTeam
           </Typography>
 
-          {account && canViewOtherProfiles(account) && (
-            <Button
-              component={RouterLink}
-              to="/profiles"
-              sx={{ ml: { xs: 0, sm: 2 }, color: "rgba(255,255,255,0.85)", fontSize: "0.8125rem", fontWeight: 500 }}>
-              Profiles
-            </Button>
+          {account && (
+            <Box component="nav" sx={{ display: "flex", gap: 0.5, ml: { xs: 0, sm: 2 }, overflowX: "auto", scrollbarWidth: "none" }}>
+              <NavMenu label="Student Data" items={[]} />
+              <NavMenu label="Forms" items={[]} />
+              {canViewOtherProfiles(account) && (
+                <NavMenu label="Profile Management" items={[{ label: "All profiles", to: "/profiles" }]} />
+              )}
+            </Box>
           )}
 
           {account && (
