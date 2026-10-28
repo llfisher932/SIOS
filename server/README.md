@@ -44,8 +44,6 @@ npx prisma migrate deploy   # builds the tables in your database
 npx prisma db seed          # adds test accounts
 ```
 
-> Use `migrate deploy` for first-time setup until the [known `enable_rls` issue](#known-issue-migrate-dev-fails-on-enable_rls) is fixed — `migrate dev` currently fails.
-
 Test account emails and their shared password are in `prisma/seed.ts` (one each of `ACTIVE` staff, `ACTIVE` parent, `PENDING`, and `INACTIVE`).
 
 ### 4. Run it
@@ -153,7 +151,7 @@ Keys: always use a **sending-only** key, never paste keys into chat or commit th
    ```bash
    npx prisma migrate dev --name short_description_of_change
    ```
-   (Until the [known issue](#known-issue-migrate-dev-fails-on-enable_rls) is fixed, use the [workaround](#workaround-until-its-fixed).)
+   While you're still experimenting, `npx prisma db push` syncs your database to the schema without making a migration. Run `migrate dev` once you're happy; only migrations reach other databases.
 4. **Add RLS for any new table** to the generated `migration.sql` (see below).
 5. Commit **both** `schema.prisma` and the new folder in `prisma/migrations/`.
 
@@ -173,46 +171,15 @@ No policies are needed: the server connects as the table owner, which RLS doesn'
 
 `migrate dev` creates a temporary empty **shadow database**, replays **every** migration into it from scratch, compares the result with `schema.prisma` to work out the new migration, then deletes it. So every migration must run cleanly on an **empty** database, not just on yours.
 
-### Known issue: `migrate dev` fails on `enable_rls`
+### History: the `enable_rls` edit (2026-10-26)
 
-`20261020175715_enable_rls` runs `ALTER TABLE "_prisma_migrations" ...`. That table (Prisma's record of applied migrations) exists in real databases, but **not in the shadow database**, so `migrate dev` fails with:
+`20261020175715_enable_rls` originally ran `ALTER TABLE "_prisma_migrations" ...` unconditionally. That table doesn't exist in the shadow database, so `migrate dev` failed for everyone with `relation "_prisma_migrations" does not exist`. The line is now wrapped in an existence check.
 
-```
-relation "_prisma_migrations" does not exist
-```
-
-This breaks `migrate dev` for everyone. **`migrate deploy` is unaffected**, so Vercel deploys and the shared database are fine.
-
-**Planned fix (tested on a throwaway database):** wrap that line so it skips when the table doesn't exist:
-
-```sql
-DO $$
-BEGIN
-  IF to_regclass('"_prisma_migrations"') IS NOT NULL THEN
-    ALTER TABLE "_prisma_migrations" ENABLE ROW LEVEL SECURITY;
-  END IF;
-END $$;
-```
-
-Effects, verified: RLS is still enabled on every real database; `migrate deploy` on already-migrated databases (Vercel, shared) accepts the edited file without re-running anything; new databases and new migrations work. **Cost:** each teammate's existing *personal* database will report the migration "was modified after it was applied" and needs a one-time `npx prisma migrate reset` (then re-seed). **Never reset the shared/Vercel database.**
-
-#### Workaround until it's fixed
-
-Generate the migration SQL by diffing your database against the schema, then apply it with `migrate deploy` (no shadow database involved):
-
-```bash
-mkdir prisma/migrations/YYYYMMDDHHMMSS_short_description
-npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script > prisma/migrations/YYYYMMDDHHMMSS_short_description/migration.sql
-# review the SQL, add ENABLE ROW LEVEL SECURITY for any new table, then:
-npx prisma migrate deploy
-npx prisma generate
-```
-
-Use the current UTC time for the folder name so migrations stay in order. Your database must be fully up to date (`npx prisma migrate status`) before diffing, or the SQL will include other people's changes.
+`migrate deploy` (Vercel, shared database) accepts the edited file without re-running anything. Personal databases created before the edit will report the migration "was modified after it was applied": run `npx prisma migrate reset` once on **your own** database, then `npx prisma db seed`. **Never reset the shared/Vercel database.**
 
 ### Rules
 
-- **Never edit or delete a migration folder that's been pushed.** Fix mistakes with a new migration. (The `enable_rls` fix above is a deliberate, team-agreed exception.)
+- **Never edit or delete a migration folder that's been pushed.** Fix mistakes with a new migration. (The [`enable_rls` edit](#history-the-enable_rls-edit-2026-10-26) was a deliberate, one-time exception.)
 - **`migrate dev` and `migrate reset` are for your own database only.** They can wipe data.
 - **The shared / Vercel database only ever gets `npx prisma migrate deploy`**, which applies pending migrations and never deletes anything.
 - If a merge brings in migrations from two branches, apply them to your database after merging and check `npx prisma migrate status`.
@@ -268,7 +235,7 @@ Use the current UTC time for the folder name so migrations stay in order. Your d
 | `DATABASE_URL is not set` / `DIRECT_URL is not set` | You're missing `.env`, or running from the wrong folder — commands run from `server/`. |
 | `JWT_SECRET must be set...` | Add a `JWT_SECRET` to `.env` (see setup step 2). |
 | `404 Not found: POST /login` | Routes are under `/api` — use `/api/login`. |
-| `migrate dev` fails: `relation "_prisma_migrations" does not exist` | The [known issue](#known-issue-migrate-dev-fails-on-enable_rls). Use the workaround. |
+| `migrate dev` fails: `relation "_prisma_migrations" does not exist` | You have an old copy of `enable_rls`. Pull `main`. |
 | `migrate dev` says a migration "was modified after it was applied" | Someone changed a pushed migration (e.g. the `enable_rls` fix). On **your own** database: `npx prisma migrate reset`, then re-seed. Never on the shared one. |
 | Login says wrong password for test accounts | Someone changed the password in `prisma/seed.ts` — rerun `npx prisma db seed`. |
 | Prisma types missing / `Cannot find module '../generated/prisma'` | Run `npx prisma generate`. |
