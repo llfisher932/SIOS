@@ -13,8 +13,7 @@ body {
   flex-direction: column;
 }
 
-/* react-toastify, restyled to match the MUI theme in theme.ts.
-   Scoped under .Toastify so these beat the library's CSS, which is injected after ours. */
+/* Scoped under .Toastify to beat the library's CSS, which loads after ours. */
 .Toastify {
   --toastify-color-success: #2e7d32;
   --toastify-color-warning: #b26a00;

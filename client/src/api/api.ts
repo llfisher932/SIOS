@@ -1,14 +1,20 @@
-// All calls to the SIOS server go through this file.
-// Same-origin by default: Vercel routes /api/* to the server, and the Vite dev proxy does the same locally.
+// Same-origin by default: Vercel and the Vite dev proxy both route /api/* to the server.
 const API_URL = `${import.meta.env.VITE_API_URL ?? ""}/api`;
 
 export type Account = {
   id: number;
   type: "STAFF" | "PARENT";
   email: string;
+  firstName: string | null;
+  lastName: string | null;
 };
 
-// Error thrown for non-2xx responses; status lets callers tell "not signed in" from real failures.
+// Falls back to email for accounts without a profile.
+export function displayName(account: Account): string {
+  const name = [account.firstName, account.lastName].filter(Boolean).join(" ");
+  return name || account.email;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -17,26 +23,23 @@ export class ApiError extends Error {
   }
 }
 
-// Sends a JSON request and returns the parsed body.
-// Throws an Error with the server's message so callers can show it directly (e.g. in a toast).
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, {
       ...options,
       headers: { "Content-Type": "application/json", ...options.headers },
-      credentials: "include", // send/receive the session cookie
+      credentials: "include", // send the session cookie
     });
   } catch {
     throw new Error("Couldn't reach the server. Check your connection and try again.");
   }
 
-  // Some responses (e.g. 204) have no JSON body.
   let body = null;
   try {
     body = await res.json();
   } catch {
-    // leave body as null
+    // no JSON body (e.g. 204)
   }
   if (!res.ok) {
     throw new ApiError(res.status, body?.error ?? "Something went wrong. Please try again.");
@@ -52,7 +55,6 @@ export async function login(email: string, password: string): Promise<Account> {
   return account;
 }
 
-// Who's signed in according to the session cookie, or null if nobody is.
 export async function getSession(): Promise<Account | null> {
   try {
     const { account } = await request<{ account: Account }>("/login/session");
@@ -63,7 +65,22 @@ export async function getSession(): Promise<Account | null> {
   }
 }
 
-// Clears the session cookie on the server.
 export async function logout(): Promise<void> {
   await request<null>("/login/logout", { method: "POST" });
+}
+
+export async function requestPasswordReset(email: string): Promise<string> {
+  const { message } = await request<{ message: string }>("/password/forgot", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+  return message;
+}
+
+export async function resetPassword(token: string, password: string): Promise<string> {
+  const { message } = await request<{ message: string }>("/password/reset", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+  return message;
 }

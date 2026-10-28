@@ -26,7 +26,7 @@ const Login = () => {
   const { account, loading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  // Where RequireAuth sent us from, so we can go back there after signing in.
+  // Where RequireAuth sent us from.
   const redirectTo = location.state?.from ?? "/home";
 
   const [email, setEmail] = useState("");
@@ -64,14 +64,13 @@ const Login = () => {
       toast.success("Signed in successfully.");
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      //error handling for the login response. Toast lets us display clean user-friendly error messages
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Don't flash the form while we check for an existing session.
+  // Don't flash the form during the session check.
   if (loading) return null;
   if (account) return <Navigate to={redirectTo} replace />;
 

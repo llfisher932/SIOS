@@ -15,7 +15,7 @@ const Home = () => {
       <Box sx={{ maxWidth: 960, mx: "auto" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", mb: 0.5 }}>
           <Typography variant="h5" component="h1">
-            Welcome back
+            {account.firstName ? `Welcome back, ${account.firstName}` : "Welcome back"}
           </Typography>
           <Chip label={ROLE_LABELS[account.type]} size="small" variant="outlined" />
         </Box>

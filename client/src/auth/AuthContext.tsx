@@ -5,7 +5,7 @@ import type { Account } from "../api/api";
 
 type AuthContextValue = {
   account: Account | null;
-  // True until we've asked the server whether the session cookie is still valid.
+  // True until the session check finishes.
   loading: boolean;
   login: (email: string, password: string) => Promise<Account>;
   logout: () => Promise<void>;
@@ -13,7 +13,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Holds the signed-in account for the whole app, restoring it from the session cookie on load.
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setAccount(await api.getSession());
       } catch {
-        setAccount(null); // server unreachable: treat as signed out
+        setAccount(null); // server unreachable
       } finally {
         setLoading(false);
       }
@@ -37,8 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return signedIn;
   };
 
-  // Clears the cookie on the server, then the local account. The local state is
-  // cleared even if the request fails, so the user is never left looking signed in.
+  // Clear local state even if the request fails.
   const logout = async () => {
     try {
       await api.logout();

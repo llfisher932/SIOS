@@ -1,8 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 
-// Team proposal palette (not client-confirmed): warm neutral base,
-// deep neutral for primary actions, brand red for header/accents only.
-// Brand red is deliberately NOT the primary color so it doesn't collide with errors.
+// Team proposal palette (not client-confirmed). Brand red stays out of primary so it doesn't read as an error.
 export const brand = {
   red: "#c8102e",
   black: "#111111",

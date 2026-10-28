@@ -1,41 +1,29 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import {
   Box,
   Button,
   CircularProgress,
   Divider,
+  Link,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
+import { Link as RouterLink } from "react-router";
+import { requestPasswordReset } from "../api/api";
 
 type FieldErrors = {
   email?: string;
 };
 
-type ForgotProps = {
-  // Called with credentials once the form passes client-side validation.
-  // Should throw (or reject) with a user-facing message on failure.
-  onForgotPass?: (email: string) => Promise<void>;
-};
-
-const mockForgotPass = async (email: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  if (email !== "test@test.com") {
-    throw new Error("There is not an account with that email. Please try again.");
-  }
-  console.log("Password retrieved for ", email);
-};
-
-const Forgotpass = ({ onForgotPass = mockForgotPass }: ForgotProps) => {
+const Forgotpass = () => {
   const [email, setEmail] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Uses the browser's built-in constraint validation (type="email" + required).
-  // noValidate on the form only suppresses the native popups; validity is still computed.
+  // noValidate hides the native popups; the browser still computes validity.
   const validate = (form: HTMLFormElement): FieldErrors => {
     const errors: FieldErrors = {};
     const emailInput = form.elements.namedItem("email") as HTMLInputElement;
@@ -48,7 +36,7 @@ const Forgotpass = ({ onForgotPass = mockForgotPass }: ForgotProps) => {
     return errors;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors = validate(e.currentTarget);
@@ -57,8 +45,7 @@ const Forgotpass = ({ onForgotPass = mockForgotPass }: ForgotProps) => {
 
     setSubmitting(true);
     try {
-      await onForgotPass(email.trim());
-      toast.success("An email has been sent to "+email.trim()+" to reset your password.");
+      toast.success(await requestPasswordReset(email.trim()));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -115,8 +102,13 @@ const Forgotpass = ({ onForgotPass = mockForgotPass }: ForgotProps) => {
 
           <Divider sx={{ mt: 3, mb: 2 }} />
           <Typography variant="body2" color="text.secondary">
-            An email will be sent to the email given to reset your password.
+            Enter the email you sign in with and we'll send you a link to choose a new password.
           </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Link component={RouterLink} to="/login" variant="body2">
+              Back to sign in
+            </Link>
+          </Box>
         </Paper>
       </Box>
 

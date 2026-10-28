@@ -6,8 +6,8 @@ import { Outlet, useNavigate } from "react-router";
 import BrandMark from "./BrandMark";
 import { brand } from "../theme";
 import { useAuth } from "../auth/AuthContext";
+import { displayName } from "../api/api";
 
-// Shared page frame: brand header on every page, plus account info once signed in.
 const Layout = () => {
   const { account, logout } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ const Layout = () => {
     try {
       await logout();
     } catch {
-      // Still signed out locally; the cookie expires on its own.
       toast.error("Couldn't reach the server, but you've been signed out on this device.");
     }
     navigate("/login", { replace: true });
@@ -52,7 +51,7 @@ const Layout = () => {
                 endIcon={<ExpandMore />}
                 sx={{ ml: "auto", color: "rgba(255,255,255,0.85)", fontSize: "0.8125rem", fontWeight: 500 }}>
                 <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                  {account.email}
+                  {displayName(account)}
                 </Box>
               </Button>
               <Menu
@@ -63,6 +62,15 @@ const Layout = () => {
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
                 slotProps={{ list: { "aria-labelledby": "account-menu-button" } }}>
+                <Box sx={{ px: 2, pt: 0.5, pb: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {displayName(account)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {account.email}
+                  </Typography>
+                </Box>
+                <Divider />
                 <MenuItem
                   onClick={() => {
                     closeMenu();
