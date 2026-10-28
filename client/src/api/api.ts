@@ -141,15 +141,23 @@ export type ProfileListItem = {
   lastName: string;
   email: string;
   role: StaffRole | null;
+  site: string | null;
+  team: string | null;
+  status?: AccountStatus;
 };
+
+// Empty values are left off; the server ignores filters the viewer can't use.
+export type ProfileFilters = { q: string; type: "" | "PARENT" | "STAFF"; status: "" | AccountStatus };
 
 export async function getMyProfile(): Promise<ParentProfile | StaffProfile> {
   const { profile } = await request<{ profile: ParentProfile | StaffProfile }>("/profiles/me");
   return profile;
 }
 
-export async function listProfiles(): Promise<ProfileListItem[]> {
-  const { profiles } = await request<{ profiles: ProfileListItem[] }>("/profiles");
+export async function searchProfiles(filters: ProfileFilters): Promise<ProfileListItem[]> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
+  const { profiles } = await request<{ profiles: ProfileListItem[] }>(`/profiles?${params}`);
   return profiles;
 }
 

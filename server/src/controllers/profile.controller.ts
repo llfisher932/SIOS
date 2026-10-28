@@ -18,8 +18,21 @@ export async function getOwnProfile(_req: Request, res: Response) {
   res.json({ profile: result.profile });
 }
 
-export async function listProfiles(_req: Request, res: Response) {
-  const result = await profileModel.listProfiles(currentAccount(res));
+const TYPES = ["PARENT", "STAFF"] as const;
+const STATUSES = ["ACTIVE", "PENDING", "INACTIVE"] as const;
+
+// Returns the value only if it's one of the allowed options.
+function pick<T extends string>(value: unknown, options: readonly T[]): T | undefined {
+  return options.find((option) => option === value);
+}
+
+export async function searchProfiles(req: Request, res: Response) {
+  const { q, type, status } = req.query;
+  const result = await profileModel.searchProfiles(currentAccount(res), {
+    q: typeof q === "string" ? q : undefined,
+    type: pick(type, TYPES),
+    status: pick(status, STATUSES),
+  });
   if (!result.ok) return sendDenied(res, result.reason);
   res.json({ profiles: result.profiles });
 }
