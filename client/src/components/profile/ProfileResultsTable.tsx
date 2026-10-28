@@ -14,10 +14,17 @@ import { ROLE_LABELS } from "../../api/api";
 import type { ProfileListItem } from "../../api/api";
 import StatusChip from "./StatusChip";
 
-const kindLabel = (item: ProfileListItem) => (item.role ? ROLE_LABELS[item.role] : "Parent");
+const kindLabel = (item: ProfileListItem) =>
+  item.role ? ROLE_LABELS[item.role] : "Parent";
 
 // detailed adds the super admin columns: type, site, team and status.
-const ProfileResultsTable = ({ profiles, detailed }: { profiles: ProfileListItem[]; detailed: boolean }) => (
+const ProfileResultsTable = ({
+  profiles,
+  detailed,
+}: {
+  profiles: ProfileListItem[];
+  detailed: boolean;
+}) => (
   <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
     <Table size="small" sx={{ "& td, & th": { py: 1.25 } }}>
       <TableHead sx={{ bgcolor: "action.hover" }}>
@@ -50,16 +57,19 @@ const ProfileResultsTable = ({ profiles, detailed }: { profiles: ProfileListItem
                 <TableCell>{kindLabel(item)}</TableCell>
                 <TableCell>{item.site ?? "—"}</TableCell>
                 <TableCell>{item.team ?? "—"}</TableCell>
-                <TableCell>{item.status && <StatusChip status={item.status} />}</TableCell>
+                <TableCell>
+                  {item.status && <StatusChip status={item.status} />}
+                </TableCell>
               </>
             )}
             <TableCell align="right">
               <Button
                 component={RouterLink}
                 to={`/profiles/${item.accountId}`}
-                variant="outlined"
+                variant="contained"
                 size="small"
-                aria-label={`View ${item.firstName} ${item.lastName}`}>
+                aria-label={`View ${item.firstName} ${item.lastName}`}
+              >
                 View
               </Button>
             </TableCell>
