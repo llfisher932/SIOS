@@ -9,6 +9,7 @@ import Forgotpassreset from "./views/Forgotpassreset";
 import Home from "./views/Home";
 import ProfileSearch from "./views/ProfileSearch";
 import ProfileDetail from "./views/ProfileDetail";
+import FormResponseBrowser from "./views/FormResponseBrowser";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/profile" element={<ProfileDetail />} />
               <Route path="/profiles" element={<ProfileSearch />} />
               <Route path="/profiles/:id" element={<ProfileDetail />} />
+              <Route path="/formdata" element={<FormResponseBrowser />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/home" replace />} />

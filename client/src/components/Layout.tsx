@@ -45,7 +45,7 @@ const Layout = () => {
               component="nav"
               sx={{ display: "flex", gap: 0.5, ml: { xs: 0, sm: 2 }, overflowX: "auto", scrollbarWidth: "none" }}>
               <NavMenu label="Student Data" items={[]} />
-              <NavMenu label="Forms" items={[]} />
+              <NavMenu label="Forms" items={[{ label: "Form Responses", to: "/formdata" }]} />
               {canViewOtherProfiles(account) && (
                 <NavMenu label="Profile Management" items={[{ label: "Profile search", to: "/profiles" }]} />
               )}
