@@ -165,3 +165,11 @@ export async function getProfile(accountId: number): Promise<ParentProfile | Sta
   const { profile } = await request<{ profile: ParentProfile | StaffProfile }>(`/profiles/${accountId}`);
   return profile;
 }
+
+// Permanent. Returns the updated profile.
+export async function deactivateProfile(accountId: number): Promise<ParentProfile | StaffProfile> {
+  const { profile } = await request<{ profile: ParentProfile | StaffProfile }>(`/profiles/${accountId}/deactivate`, {
+    method: "POST",
+  });
+  return profile;
+}

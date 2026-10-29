@@ -98,10 +98,11 @@ const ProfileSearch = () => {
               onChange={(e) => setFilter("status", e.target.value as ProfileFilters["status"])}
               slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
               sx={{ minWidth: 150 }}>
-              <MenuItem value="">All</MenuItem>
+              {/* Deactivated profiles are left out unless chosen here. */}
+              <MenuItem value="">Active and pending</MenuItem>
               <MenuItem value="ACTIVE">Active</MenuItem>
               <MenuItem value="PENDING">Pending approval</MenuItem>
-              <MenuItem value="INACTIVE">Inactive</MenuItem>
+              <MenuItem value="INACTIVE">Deactivated</MenuItem>
             </TextField>
             <Button
               variant="outlined"
