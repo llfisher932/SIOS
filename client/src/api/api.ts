@@ -165,3 +165,59 @@ export async function getProfile(accountId: number): Promise<ParentProfile | Sta
   const { profile } = await request<{ profile: ParentProfile | StaffProfile }>(`/profiles/${accountId}`);
   return profile;
 }
+
+// FormTemplates:
+
+export type FormTemplate = {
+  id: number;
+  title: string;
+  description: string;
+  createdAt: string;
+  editedAt: string;
+};
+
+export type CreatedFormTemplate = {
+  title: string;
+  description: string;
+};
+
+export async function getFormTemplate(id: number) : Promise<FormTemplate>
+{
+  const formTemplate = await request<FormTemplate>(`/formTemplates/manager/${id}`);
+  return formTemplate;
+}
+
+export async function getAllForms() : Promise<FormTemplate[]>
+{
+  const formTemplates = await request<FormTemplate[] >(`/formTemplates`);
+  return formTemplates;
+}
+
+export async function updateFormTemplate(id: number, template: CreatedFormTemplate) : Promise<FormTemplate>
+{
+    return request<FormTemplate>(`/formTemplates/manager/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(template),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+}
+
+export async function createFormTemplate(template: CreatedFormTemplate) : Promise<FormTemplate>
+{
+    return request<FormTemplate>(`/formTemplates`, {
+        method: "POST",
+        body: JSON.stringify(template),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+}
+export async function deleteFormTemplate(id: number)
+{
+    return request<FormTemplate>(`/formTemplates/${id}`, {
+        method: "DELETE",
+        
+    });
+}
