@@ -174,6 +174,139 @@ export async function deactivateProfile(accountId: number): Promise<ParentProfil
   return profile;
 }
 
+// Students:
+
+export type StudentStatus = "ACTIVE" | "INACTIVE";
+
+// On hold until the client confirms they want students created in SIOS.
+// Flip to true here and in server/src/router/student.router.ts to turn it back on.
+export const STUDENT_CREATION_ENABLED = false;
+
+// Programs and sites Team Nitro runs today. The server stores plain strings,
+// so changing these lists doesn't break existing students.
+export const PROGRAMS = ["Youth MMA", "Little Ninjas", "Teen Mentoring"] as const;
+export const SITES = ["Impact", "Zarephath"] as const;
+export const GENDERS = ["Female", "Male", "Non-binary", "Prefer not to say"] as const;
+export const GRADES = ["K", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"] as const;
+
+export type StudentListItem = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  grade: string | null;
+  program: string;
+  site: string;
+  status: StudentStatus;
+  updatedAt: string;
+};
+
+export type StudentParent = {
+  accountId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export type Student = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string | null;
+  school: string | null;
+  grade: string | null;
+  program: string;
+  site: string;
+  enrollmentDate: string;
+  status: StudentStatus;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  emergencyContactRelationship: string | null;
+  medicalNotes: string | null;
+  updatedAt: string;
+  parents: StudentParent[];
+};
+
+// Dates are "yyyy-mm-dd"; phones are 10 digits, no formatting.
+export type StudentInput = {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  school: string;
+  grade: string;
+  program: string;
+  site: string;
+  enrollmentDate: string;
+  status: StudentStatus;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  emergencyContactRelationship: string;
+  medicalNotes: string;
+  parentAccountIds: number[];
+};
+
+export type StudentFilters = { q: string; program: string; site: string; status: "" | StudentStatus };
+
+export function canManageStudents(account: Account): boolean {
+  return account.role === "ADMIN" || account.role === "SUPER_ADMIN";
+}
+
+// "S-00042" — the Student ID shown everywhere in the UI.
+export function displayStudentId(id: number): string {
+  return `S-${String(id).padStart(5, "0")}`;
+}
+
+export function studentAge(dateOfBirth: string): number {
+  const dob = new Date(`${dateOfBirth.slice(0, 10)}T00:00:00`);
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+export async function searchStudents(filters: StudentFilters): Promise<StudentListItem[]> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
+  const { students } = await request<{ students: StudentListItem[] }>(`/students?${params}`);
+  return students;
+}
+
+export async function getStudent(id: number): Promise<Student> {
+  const { student } = await request<{ student: Student }>(`/students/${id}`);
+  return student;
+}
+
+// A 409 means a student with the same name and date of birth exists;
+// pass allowDuplicate after the admin confirms (see use case 3.4.2).
+export async function createStudent(input: StudentInput, allowDuplicate = false): Promise<Student> {
+  const { student } = await request<{ student: Student }>("/students", {
+    method: "POST",
+    body: JSON.stringify({ ...input, allowDuplicate }),
+  });
+  return student;
+}
+
+export async function updateStudent(id: number, input: StudentInput, allowDuplicate = false): Promise<Student> {
+  const { student } = await request<{ student: Student }>(`/students/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ ...input, allowDuplicate }),
+  });
+  return student;
+}
+
+// Archives the student; a super admin can restore them later.
+export async function deleteStudent(id: number): Promise<void> {
+  await request<null>(`/students/${id}`, { method: "DELETE" });
+}
+
 // FormTemplates:
 
 export type FormTemplate = {

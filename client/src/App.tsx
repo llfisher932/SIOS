@@ -11,6 +11,10 @@ import ProfileSearch from "./views/ProfileSearch";
 import ProfileDetail from "./views/ProfileDetail";
 import FormTemplateList from "./views/FormTemplateList"
 import FormTemplateManager from "./views/FormTemplateManager";
+import StudentDirectory from "./views/StudentDirectory";
+import StudentDetail from "./views/StudentDetail";
+import StudentForm from "./views/StudentForm";
+import { STUDENT_CREATION_ENABLED } from "./api/api";
 
 function App() {
   return (
@@ -29,6 +33,14 @@ function App() {
               <Route path="/profile" element={<ProfileDetail />} />
               <Route path="/profiles" element={<ProfileSearch />} />
               <Route path="/profiles/:id" element={<ProfileDetail />} />
+
+              <Route path="/students" element={<StudentDirectory />} />
+              <Route
+                path="/students/new"
+                element={STUDENT_CREATION_ENABLED ? <StudentForm /> : <Navigate to="/students" replace />}
+              />
+              <Route path="/students/:id" element={<StudentDetail />} />
+              <Route path="/students/:id/edit" element={<StudentForm />} />
 
               <Route path="/formTemplates" element={<FormTemplateList />} />
               <Route path="/formTemplateManager" element={<FormTemplateManager />} />

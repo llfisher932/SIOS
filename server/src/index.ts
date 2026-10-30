@@ -6,6 +6,7 @@ import loginRouter from "./router/login.router.js";
 import passwordRouter from "./router/password.router.js";
 import profileRouter from "./router/profile.router.js";
 import formTemplateRouter from "./router/formTemplate.router.js"
+import studentRouter from "./router/student.router.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -26,6 +27,7 @@ api.use("/login", loginRouter);
 api.use("/password", passwordRouter);
 api.use("/profiles", profileRouter);
 api.use("/formTemplates", formTemplateRouter);
+api.use("/students", studentRouter);
 app.use("/api", api);
 
 app.use(notFound);

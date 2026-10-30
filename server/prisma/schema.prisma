@@ -62,6 +62,7 @@ model ParentProfile {
   updatedAt DateTime @updatedAt
 
   contacts Contact[]
+  students StudentParentLink[]
 
   @@map("parent_profiles")
 }
@@ -110,6 +111,58 @@ model PasswordResetToken {
 
   @@index([accountId, createdAt])
   @@map("password_reset_tokens")
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Student {
+  id             Int           @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime
+  gender         String?
+  school         String?
+  grade          String?
+  program        String
+  site           String
+  enrollmentDate DateTime
+  status         StudentStatus @default(ACTIVE)
+
+  guardianName  String
+  guardianPhone String // 10 digits, no formatting
+  guardianEmail String
+
+  emergencyContactName         String?
+  emergencyContactPhone        String? // 10 digits, no formatting
+  emergencyContactRelationship String?
+
+  medicalNotes String? // staff only, never shown to parents
+
+  // Deleting archives instead; archived students are hidden everywhere until a super admin restores them.
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  parents StudentParentLink[]
+
+  @@map("students")
+}
+
+// Linking approves the parent account to view this student's data.
+model StudentParentLink {
+  id              Int           @id @default(autoincrement())
+  studentId       Int
+  student         Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parentAccountId Int
+  parentProfile   ParentProfile @relation(fields: [parentAccountId], references: [accountId], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([studentId, parentAccountId])
+  @@index([parentAccountId])
+  @@map("student_parent_links")
 }
 
 model FormTemplate {
