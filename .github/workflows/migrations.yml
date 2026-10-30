@@ -1,0 +1,58 @@
+# Applies every Prisma migration to an empty Postgres before anything reaches main.
+# Production is the first place migrations run on Vercel (preview builds skip them),
+# so this is where a broken migration gets caught.
+name: Database migrations
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sios_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Throwaway CI database, not a real credential.
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/sios_ci
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sios_ci
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+
+      - name: Apply all migrations to an empty database
+        run: npx prisma migrate deploy
+
+      - name: Check schema.prisma matches the migrations
+        run: |
+          if ! npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code; then
+            echo "::error::schema.prisma has changes with no migration. Run 'npx prisma migrate dev' and commit the new migration folder."
+            exit 1
+          fi
