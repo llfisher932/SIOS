@@ -71,3 +71,23 @@ body {
   width: 100%;
   flex-grow: 1;
 }
+
+/* Jacob's CSS */
+.pageDiv{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 20px;
+  row-gap: 20px;
+}
+
+.pageDiv-column{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: space-around;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
