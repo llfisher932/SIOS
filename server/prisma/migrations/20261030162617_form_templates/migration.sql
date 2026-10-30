@@ -9,4 +9,5 @@ CREATE TABLE "form_templates" (
     CONSTRAINT "form_templates_pkey" PRIMARY KEY ("id")
 );
 
-ALTER TABLE "your_table_name" ENABLE ROW LEVEL SECURITY;
+-- Block Supabase's Data API from this table, matching the other tables.
+ALTER TABLE "form_templates" ENABLE ROW LEVEL SECURITY;
