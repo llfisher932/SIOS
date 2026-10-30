@@ -8,5 +8,6 @@ router.use(requireAuth);
 router.get("/me", profileController.getOwnProfile);
 router.get("/", profileController.searchProfiles);
 router.get("/:id", profileController.getProfile);
+router.post("/:id/deactivate", profileController.deactivateProfile);
 
 export default router;

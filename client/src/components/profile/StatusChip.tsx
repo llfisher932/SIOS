@@ -4,7 +4,7 @@ import type { AccountStatus } from "../../api/api";
 const STATUS_CHIPS: Record<AccountStatus, { label: string; color: "success" | "warning" | "default" }> = {
   ACTIVE: { label: "Active", color: "success" },
   PENDING: { label: "Pending approval", color: "warning" },
-  INACTIVE: { label: "Inactive", color: "default" },
+  INACTIVE: { label: "Deactivated", color: "default" },
 };
 
 const StatusChip = ({ status }: { status: AccountStatus }) => {

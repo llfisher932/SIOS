@@ -166,6 +166,16 @@ export async function getProfile(accountId: number): Promise<ParentProfile | Sta
   return profile;
 }
 
+
+// Permanent. Returns the updated profile.
+export async function deactivateProfile(accountId: number): Promise<ParentProfile | StaffProfile> {
+  const { profile } = await request<{ profile: ParentProfile | StaffProfile }>(`/profiles/${accountId}/deactivate`, {
+    method: "POST",
+  });
+  return profile;
+}
+
+
 // FormTemplates:
 
 export type FormTemplate = {
@@ -220,4 +230,3 @@ export async function deleteFormTemplate(id: number)
         method: "DELETE",
         
     });
-}

@@ -35,6 +35,9 @@ model Account {
   status            AccountStatus @default(PENDING)
   // Sessions issued before this are rejected.
   passwordChangedAt DateTime?
+  // Deactivation is permanent. The real email moves here so it can be used for a new account.
+  deactivatedEmail  String?
+  deactivatedAt     DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
