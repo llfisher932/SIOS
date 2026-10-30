@@ -44,7 +44,11 @@ const Layout = () => {
             <Box
               component="nav"
               sx={{ display: "flex", gap: 0.5, ml: { xs: 0, sm: 2 }, overflowX: "auto", scrollbarWidth: "none" }}>
-              <NavMenu label="Student Data" items={[]} />
+              {/* Parents get their own student view in a later use case. */}
+              <NavMenu
+                label="Student Data"
+                items={account.type === "STAFF" ? [{ label: "Student directory", to: "/students" }] : []}
+              />
               <NavMenu label="Forms" items={[{ label: "Mange Form Templates", to: "/formTemplates"}]} />
               {canViewOtherProfiles(account) && (
                 <NavMenu label="Profile Management" items={[{ label: "Profile search", to: "/profiles" }]} />

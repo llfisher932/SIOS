@@ -83,4 +83,66 @@ await prisma.parentProfile.update({
 });
 console.log("Seeded contacts for parent@sios.test");
 
+// Students from the wireframes. Matched by name + date of birth so reruns don't duplicate them.
+const students = [
+  {
+    firstName: "Jordan",
+    lastName: "Smith",
+    dateOfBirth: new Date("2014-03-12T00:00:00.000Z"),
+    grade: "6th",
+    program: "Youth MMA",
+    site: "Impact",
+    school: "Springfield Middle School",
+    enrollmentDate: new Date("2026-08-15T00:00:00.000Z"),
+    guardianName: "Maria Smith",
+    guardianPhone: "9045550142",
+    guardianEmail: "maria.smith@example.com",
+    linkParent: true,
+  },
+  {
+    firstName: "Ava",
+    lastName: "Johnson",
+    dateOfBirth: new Date("2018-06-02T00:00:00.000Z"),
+    grade: "3rd",
+    program: "Little Ninjas",
+    site: "Impact",
+    enrollmentDate: new Date("2026-09-01T00:00:00.000Z"),
+    guardianName: "Pat Parent",
+    guardianPhone: "5551234567",
+    guardianEmail: "parent@sios.test",
+    linkParent: true,
+  },
+  {
+    firstName: "Liam",
+    lastName: "Brown",
+    dateOfBirth: new Date("2012-11-23T00:00:00.000Z"),
+    grade: "8th",
+    program: "Youth MMA",
+    site: "Zarephath",
+    enrollmentDate: new Date("2026-07-20T00:00:00.000Z"),
+    guardianName: "Dana Brown",
+    guardianPhone: "5559876543",
+    guardianEmail: "dana.brown@example.com",
+    linkParent: false,
+  },
+];
+
+for (const { linkParent, ...data } of students) {
+  const existing = await prisma.student.findFirst({
+    where: { firstName: data.firstName, lastName: data.lastName, dateOfBirth: data.dateOfBirth },
+    select: { id: true },
+  });
+  const student = existing
+    ? await prisma.student.update({ where: { id: existing.id }, data })
+    : await prisma.student.create({ data });
+  if (linkParent) {
+    await prisma.studentParentLink.upsert({
+      where: { studentId_parentAccountId: { studentId: student.id, parentAccountId: parent.id } },
+      update: {},
+      create: { studentId: student.id, parentAccountId: parent.id },
+    });
+  }
+  console.log(`Seeded student ${data.firstName} ${data.lastName}${linkParent ? " (linked to parent@sios.test)" : ""}`);
+}
+
 await prisma.$disconnect();
