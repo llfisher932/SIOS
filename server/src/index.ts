@@ -5,6 +5,7 @@ import { errorHandler, notFound } from "./middleware/middleware.js";
 import loginRouter from "./router/login.router.js";
 import passwordRouter from "./router/password.router.js";
 import profileRouter from "./router/profile.router.js";
+import formTemplateRouter from "./router/formTemplate.router.js"
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -24,6 +25,7 @@ const api = express.Router();
 api.use("/login", loginRouter);
 api.use("/password", passwordRouter);
 api.use("/profiles", profileRouter);
+api.use("/formTemplates", formTemplateRouter);
 app.use("/api", api);
 
 app.use(notFound);

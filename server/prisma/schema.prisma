@@ -35,6 +35,9 @@ model Account {
   status            AccountStatus @default(PENDING)
   // Sessions issued before this are rejected.
   passwordChangedAt DateTime?
+  // Deactivation is permanent. The real email moves here so it can be used for a new account.
+  deactivatedEmail  String?
+  deactivatedAt     DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -107,4 +110,14 @@ model PasswordResetToken {
 
   @@index([accountId, createdAt])
   @@map("password_reset_tokens")
+}
+
+model FormTemplate {
+  id Int @id @default(autoincrement())
+  title String
+  description String
+  createdAt DateTime @default(now())
+  editedAt DateTime @updatedAt
+  
+  @@map("form_templates")
 }

@@ -1,5 +1,10 @@
 import prisma from "../db.js";
-import type { AccountStatus, AccountType, Prisma, StaffRole } from "../generated/prisma/client.js";
+import type {
+  AccountStatus,
+  AccountType,
+  Prisma,
+  StaffRole,
+} from "../generated/prisma/client.js";
 import type { AccountSummary } from "./account.model.js";
 
 // Who is looking decides which fields come back:
@@ -70,6 +75,20 @@ const contactSelect = {
   authorizedPickup: true,
 } as const;
 
+const accountSelect = {
+  email: true,
+  status: true,
+  deactivatedEmail: true,
+} as const;
+
+// Deactivation frees the email for reuse, but the profile still shows the old one.
+function displayEmail(account: {
+  email: string;
+  deactivatedEmail: string | null;
+}): string {
+  return account.deactivatedEmail ?? account.email;
+}
+
 function viewerRole(viewer: AccountSummary): StaffRole | null {
   return viewer.type === "STAFF" ? viewer.role : null;
 }
@@ -79,7 +98,10 @@ export function canViewOtherProfiles(viewer: AccountSummary): boolean {
   return role === "ADMIN" || role === "SUPER_ADMIN";
 }
 
-async function findParentProfile(accountId: number, level: ViewLevel): Promise<ParentProfileView | null> {
+async function findParentProfile(
+  accountId: number,
+  level: ViewLevel,
+): Promise<ParentProfileView | null> {
   const profile = await prisma.parentProfile.findUnique({
     where: { accountId },
     select: {
@@ -87,7 +109,7 @@ async function findParentProfile(accountId: number, level: ViewLevel): Promise<P
       lastName: true,
       phone: true,
       address: true,
-      account: { select: { email: true, status: true } },
+      account: { select: accountSelect },
       contacts: { select: contactSelect, orderBy: { createdAt: "asc" } },
     },
   });
@@ -98,7 +120,7 @@ async function findParentProfile(accountId: number, level: ViewLevel): Promise<P
     accountId,
     firstName: profile.firstName,
     lastName: profile.lastName,
-    email: profile.account.email,
+    email: displayEmail(profile.account),
     phone: profile.phone,
     ...(level !== "ADMIN" && { address: profile.address }),
     ...(level === "SUPER_ADMIN" && { status: profile.account.status }),
@@ -106,7 +128,10 @@ async function findParentProfile(accountId: number, level: ViewLevel): Promise<P
   };
 }
 
-async function findStaffProfile(accountId: number, level: "SELF" | "SUPER_ADMIN"): Promise<StaffProfileView | null> {
+async function findStaffProfile(
+  accountId: number,
+  level: "SELF" | "SUPER_ADMIN",
+): Promise<StaffProfileView | null> {
   const profile = await prisma.staffProfile.findUnique({
     where: { accountId },
     select: {
@@ -115,7 +140,7 @@ async function findStaffProfile(accountId: number, level: "SELF" | "SUPER_ADMIN"
       role: true,
       site: true,
       team: true,
-      account: { select: { email: true, status: true } },
+      account: { select: accountSelect },
     },
   });
   if (!profile) return null;
@@ -125,16 +150,20 @@ async function findStaffProfile(accountId: number, level: "SELF" | "SUPER_ADMIN"
     kind: "STAFF",
     accountId,
     ...rest,
-    email: account.email,
+    email: displayEmail(account),
     ...(level === "SUPER_ADMIN" && { status: account.status }),
   };
 }
 
 export async function getOwnProfile(
   viewer: AccountSummary,
-): Promise<{ ok: true; profile: ParentProfileView | StaffProfileView } | Denied> {
+): Promise<
+  { ok: true; profile: ParentProfileView | StaffProfileView } | Denied
+> {
   const profile =
-    viewer.type === "PARENT" ? await findParentProfile(viewer.id, "SELF") : await findStaffProfile(viewer.id, "SELF");
+    viewer.type === "PARENT"
+      ? await findParentProfile(viewer.id, "SELF")
+      : await findStaffProfile(viewer.id, "SELF");
   return profile ? { ok: true, profile } : { ok: false, reason: "NOT_FOUND" };
 }
 
@@ -144,13 +173,21 @@ function matchesTerm(term: string): Prisma.AccountWhereInput {
   return {
     OR: [
       { email: contains },
-      { parentProfile: { OR: [{ firstName: contains }, { lastName: contains }] } },
-      { staffProfile: { OR: [{ firstName: contains }, { lastName: contains }] } },
+      { deactivatedEmail: contains },
+      {
+        parentProfile: {
+          OR: [{ firstName: contains }, { lastName: contains }],
+        },
+      },
+      {
+        staffProfile: { OR: [{ firstName: contains }, { lastName: contains }] },
+      },
     ],
   };
 }
 
 // Admins search parents only, without status; super admins search everyone and can filter.
+// Deactivated profiles only appear when that status is asked for.
 export async function searchProfiles(
   viewer: AccountSummary,
   filters: ProfileFilters,
@@ -162,14 +199,27 @@ export async function searchProfiles(
   const terms = filters.q?.trim().split(/\s+/).filter(Boolean) ?? [];
 
   const accounts = await prisma.account.findMany({
-    where: { ...(type && { type }), ...(status && { status }), AND: terms.map(matchesTerm) },
+    where: {
+      ...(type && { type }),
+      status: status ?? { not: "INACTIVE" },
+      AND: terms.map(matchesTerm),
+    },
     select: {
       id: true,
       type: true,
       email: true,
       status: true,
+      deactivatedEmail: true,
       parentProfile: { select: { firstName: true, lastName: true } },
-      staffProfile: { select: { firstName: true, lastName: true, role: true, site: true, team: true } },
+      staffProfile: {
+        select: {
+          firstName: true,
+          lastName: true,
+          role: true,
+          site: true,
+          team: true,
+        },
+      },
     },
   });
 
@@ -182,7 +232,7 @@ export async function searchProfiles(
         kind: a.type,
         firstName: profile.firstName,
         lastName: profile.lastName,
-        email: a.email,
+        email: displayEmail(a),
         role: a.staffProfile?.role ?? null,
         site: a.staffProfile?.site ?? null,
         team: a.staffProfile?.team ?? null,
@@ -190,18 +240,27 @@ export async function searchProfiles(
       },
     ];
   });
-  profiles.sort((x, y) => x.lastName.localeCompare(y.lastName) || x.firstName.localeCompare(y.firstName));
+  profiles.sort(
+    (x, y) =>
+      x.lastName.localeCompare(y.lastName) ||
+      x.firstName.localeCompare(y.firstName),
+  );
   return { ok: true, profiles };
 }
 
 export async function getProfile(
   viewer: AccountSummary,
   accountId: number,
-): Promise<{ ok: true; profile: ParentProfileView | StaffProfileView } | Denied> {
+): Promise<
+  { ok: true; profile: ParentProfileView | StaffProfileView } | Denied
+> {
   if (!canViewOtherProfiles(viewer)) return { ok: false, reason: "FORBIDDEN" };
   const role = viewerRole(viewer);
 
-  const account = await prisma.account.findUnique({ where: { id: accountId }, select: { type: true } });
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: { type: true },
+  });
   if (!account) return { ok: false, reason: "NOT_FOUND" };
 
   if (account.type === "STAFF") {
@@ -210,6 +269,9 @@ export async function getProfile(
     return profile ? { ok: true, profile } : { ok: false, reason: "NOT_FOUND" };
   }
 
-  const profile = await findParentProfile(accountId, role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "ADMIN");
+  const profile = await findParentProfile(
+    accountId,
+    role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "ADMIN",
+  );
   return profile ? { ok: true, profile } : { ok: false, reason: "NOT_FOUND" };
 }

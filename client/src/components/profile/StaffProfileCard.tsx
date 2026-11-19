@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Box } from "@mui/material";
 import { ROLE_LABELS } from "../../api/api";
 import type { StaffProfile } from "../../api/api";
@@ -6,8 +7,16 @@ import ProfileField from "./ProfileField";
 import StatusChip from "./StatusChip";
 
 // Status only renders when the server sent it.
-const StaffProfileCard = ({ profile, title }: { profile: StaffProfile; title: string }) => (
-  <ProfileCard title={title}>
+const StaffProfileCard = ({
+  profile,
+  title,
+  actions,
+}: {
+  profile: StaffProfile;
+  title: string;
+  actions?: ReactNode;
+}) => (
+  <ProfileCard title={title} actions={actions}>
     <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
       <ProfileField label="Name">
         {profile.firstName} {profile.lastName}

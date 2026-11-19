@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Box, Divider, Paper, Typography } from "@mui/material";
 import type { ParentProfile } from "../../api/api";
 import ProfileCard from "./ProfileCard";
@@ -7,9 +8,17 @@ import ContactList from "./ContactList";
 import PhoneNumber from "./PhoneNumber";
 
 // Address and status only render when the server sent them.
-const ParentProfileCard = ({ profile, title }: { profile: ParentProfile; title: string }) => (
+const ParentProfileCard = ({
+  profile,
+  title,
+  actions,
+}: {
+  profile: ParentProfile;
+  title: string;
+  actions?: ReactNode;
+}) => (
   <>
-    <ProfileCard title={title}>
+    <ProfileCard title={title} actions={actions}>
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
         <ProfileField label="Name">
           {profile.firstName} {profile.lastName}

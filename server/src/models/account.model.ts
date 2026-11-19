@@ -1,5 +1,9 @@
 import prisma from "../db.js";
-import type { AccountStatus, AccountType, StaffRole } from "../generated/prisma/client.js";
+import type {
+  AccountStatus,
+  AccountType,
+  StaffRole,
+} from "../generated/prisma/client.js";
 import { verifyPassword } from "../auth/password.js";
 import { createSessionToken, verifySessionToken } from "../auth/session.js";
 
@@ -32,14 +36,16 @@ function toAccountSummary(account: {
   parentProfile: Name;
   staffProfile: (Name & { role: StaffRole }) | null;
 }): AccountSummary {
-  const profile = account.type === "PARENT" ? account.parentProfile : account.staffProfile;
+  const profile =
+    account.type === "PARENT" ? account.parentProfile : account.staffProfile;
   return {
     id: account.id,
     type: account.type,
     email: account.email,
     firstName: profile?.firstName ?? null,
     lastName: profile?.lastName ?? null,
-    role: account.type === "STAFF" ? (account.staffProfile?.role ?? null) : null,
+    role:
+      account.type === "STAFF" ? (account.staffProfile?.role ?? null) : null,
   };
 }
 
@@ -52,7 +58,10 @@ export function findAccountByEmail(email: string) {
   return prisma.account.findUnique({ where: { email: normalizeEmail(email) } });
 }
 
-export async function login(email: string, password: string): Promise<LoginResult> {
+export async function login(
+  email: string,
+  password: string,
+): Promise<LoginResult> {
   const account = await prisma.account.findUnique({
     where: { email: normalizeEmail(email) },
     include: profileInclude,
@@ -72,18 +81,30 @@ export async function login(email: string, password: string): Promise<LoginResul
 }
 
 // Re-checks the database so deactivation takes effect immediately.
-export async function getSessionAccount(token: string): Promise<AccountSummary | null> {
+export async function getSessionAccount(
+  token: string,
+): Promise<AccountSummary | null> {
   const session = await verifySessionToken(token);
   if (!session) return null;
 
   const account = await prisma.account.findUnique({
     where: { id: session.accountId },
-    select: { id: true, type: true, email: true, status: true, passwordChangedAt: true, ...profileInclude },
+    select: {
+      id: true,
+      type: true,
+      email: true,
+      status: true,
+      passwordChangedAt: true,
+      ...profileInclude,
+    },
   });
   if (!account || account.status !== "ACTIVE") return null;
 
   // Reject sessions issued before the last password change (iat is in seconds).
-  if (account.passwordChangedAt && session.issuedAt < Math.floor(account.passwordChangedAt.getTime() / 1000)) {
+  if (
+    account.passwordChangedAt &&
+    session.issuedAt < Math.floor(account.passwordChangedAt.getTime() / 1000)
+  ) {
     return null;
   }
 
@@ -106,9 +127,56 @@ export async function createAccount(data: {
     data: {
       ...account,
       email: normalizeEmail(account.email),
-      ...(account.type === "PARENT" ? { parentProfile: profile } : { staffProfile: profile }),
+      ...(account.type === "PARENT"
+        ? { parentProfile: profile }
+        : { staffProfile: profile }),
     },
     include: profileInclude,
   });
   return toAccountSummary(created);
+}
+
+export type DeactivateResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "FORBIDDEN" | "NOT_FOUND" | "SELF" | "ALREADY_DEACTIVATED";
+    };
+
+// .invalid is a reserved domain, so this can never match a real sign-in.
+function releasedEmail(accountId: number): string {
+  return `deactivated-${accountId}@sios.invalid`;
+}
+
+// Permanent: there is no reactivation. The profile and its records are kept
+// for audits, the email is freed for a new account, and the next session
+// check signs the user out.
+export async function deactivateAccount(
+  viewer: AccountSummary,
+  accountId: number,
+): Promise<DeactivateResult> {
+  if (viewer.role !== "SUPER_ADMIN") return { ok: false, reason: "FORBIDDEN" };
+  if (viewer.id === accountId) return { ok: false, reason: "SELF" };
+
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: { email: true, status: true },
+  });
+  if (!account) return { ok: false, reason: "NOT_FOUND" };
+  if (account.status === "INACTIVE") {
+    return { ok: false, reason: "ALREADY_DEACTIVATED" };
+  }
+
+  // The status condition stops a simultaneous second request from saving the
+  // placeholder over the real email.
+  const { count } = await prisma.account.updateMany({
+    where: { id: accountId, status: { not: "INACTIVE" } },
+    data: {
+      status: "INACTIVE",
+      email: releasedEmail(accountId),
+      deactivatedEmail: account.email,
+      deactivatedAt: new Date(),
+    },
+  });
+  return count ? { ok: true } : { ok: false, reason: "ALREADY_DEACTIVATED" };
 }
