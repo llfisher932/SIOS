@@ -1,13 +1,13 @@
-import { Box, Button, ButtonGroup, Container, FormControlLabel, IconButton, InputAdornment, Paper, Radio, RadioGroup, TextField, Typography } from "@mui/material";
+import { Box, Button, ButtonGroup, FormControlLabel, InputAdornment, Paper, Radio, RadioGroup, TextField, Typography } from "@mui/material";
 import { useAuth } from "../auth/AuthContext";
-import { Close, FilterList, Search } from "@mui/icons-material";
-import { useState } from "react";
+import { FilterList, Search } from "@mui/icons-material";
+// import { useState } from "react";
 
 const FormResponseBrowser = () => {
   const { account } = useAuth();
   if (!account) return null;
 
-  const [search, setSearch] = useState<string | null>(null);
+  // const [search, setSearch] = useState<string | null>(null);
 
   return (
     <Box component="main" sx={{ bgcolor: "background.default", flex: 1, px: 2, py: { xs: 3, sm: 5 } }}>
@@ -40,7 +40,7 @@ const FormResponseBrowser = () => {
                   fullWidth
                   placeholder="Search by name"
                   value={""}
-                  onChange={(e) => setSearch( e.target.value)}
+                  onChange={(e) => e}
                   slotProps={{
                     htmlInput: { "aria-label": "Search profiles" },
                     input: {
