@@ -27,6 +27,11 @@ enum StaffRole {
   SUPER_ADMIN
 }
 
+enum FormResponseStatus {
+  PENDING
+  COMPLETED
+}
+
 model Account {
   id                Int           @id @default(autoincrement())
   type              AccountType
@@ -46,6 +51,7 @@ model Account {
   staffProfile  StaffProfile?
 
   passwordResetTokens PasswordResetToken[]
+  formResponses FormResponse[]
 
   @@map("accounts")
 }
@@ -120,4 +126,29 @@ model FormTemplate {
   editedAt DateTime @updatedAt
   
   @@map("form_templates")
+}
+
+model FormResponse {
+  id Int @id @default(autoincrement())
+  status FormResponseStatus @default(PENDING)
+  assignedAt DateTime @default(now())
+  completedAt DateTime @updatedAt
+  // studentID to attach to student
+  userID Int
+
+  account Account @relation(fields: [userID], references: [id])
+  formResponseQuestions FormResponseQuestion[]
+
+  @@map("form_response")
+}
+
+model FormResponseQuestion {
+  id Int @id @default(autoincrement())
+  formResponseid Int
+  questionText String
+  answerText String
+
+  formResponses FormResponse @relation(fields: [formResponseid], references: [id])
+
+  @@map("form_response_question")
 }
