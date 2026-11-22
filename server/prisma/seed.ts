@@ -1,9 +1,9 @@
-// Creates local test accounts. Run with: npx prisma db seed
+// Creates local test accounts + form responses. Run with: npx prisma db seed
 // Test-only credentials — never reuse this password anywhere real.
 import prisma from "../src/db.js";
 import { hashPassword } from "../src/auth/password.js";
 import { normalizeEmail } from "../src/models/account.model.js";
-import type { AccountStatus, StaffRole } from "../src/generated/prisma/client.js";
+import type { AccountStatus, StaffRole, FormResponseStatus} from "../src/generated/prisma/client.js";
 
 const TEST_PASSWORD = "password";
 
@@ -82,5 +82,34 @@ await prisma.parentProfile.update({
   },
 });
 console.log("Seeded contacts for parent@sios.test");
+
+// Dummy Form Responses
+type FormResponseSeed = {status: "COMPLETED", title: "Dummy Form", userID: number}
+type FormResponseQuestionSeed = {formResponseID: number, questionText: string, answerText: string}
+
+console.log("Clearing pre-existing form response info...")
+await prisma.formResponseQuestion.deleteMany()
+await prisma.formResponse.deleteMany()
+
+console.log("Creating form responses...")
+await prisma.formResponse.createMany({
+  data: [
+    {status: "COMPLETED", title: "Dummy Form Res A", userID: 4},
+    {status: "COMPLETED", title: "Dummy Form Res B", userID: 4},
+    {title: "Incomplete Dummy Form Res", userID: 4}
+  ]
+})
+
+console.log("Creating form response questions...")
+await prisma.formResponseQuestion.createMany({
+  data: [
+    {formResponseid: 1, questionText: "Is water wet?", answerText: "Yes"},
+    {formResponseid: 1, questionText: "On a scale of 1 to 5, how satisfied are you?", answerText: "4"},
+    {formResponseid: 1, questionText: "Is there anything else you'd like to add?", answerText: "Nah I'm good"},
+    {formResponseid: 2, questionText: "Is water wet?", answerText: "No"},
+    {formResponseid: 2, questionText: "On a scale of 1 to 5, how satisfied are you?", answerText: "2"},
+    {formResponseid: 2, questionText: "Is there anything else you'd like to add?", answerText: "Yes, actually."}
+  ]
+});
 
 await prisma.$disconnect();
