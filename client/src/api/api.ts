@@ -223,3 +223,28 @@ export async function deleteFormTemplate(id: number) {
     method: "DELETE",
   });
 }
+
+// Form Responses
+
+export type FormResponseQuestion = {
+  id: number;
+  formResponseID: number;
+  questionText: string;
+  answerText: string;
+}
+
+export type FormResponse = {
+  id: number;
+  title: string;
+  status: "PENDING" | "COMPLETED";
+  assignedName: string;
+  assignedAt: string;
+  completedAt: string;
+  userID: number;
+  formResponseQuestions: FormResponseQuestion[]
+};
+
+export async function getFormResponse(id: number): Promise<FormResponse> {
+  const formResponse = await request<FormResponse>(`/formResponse/${id}`);
+  return formResponse;
+}

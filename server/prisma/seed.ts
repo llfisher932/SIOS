@@ -84,8 +84,6 @@ await prisma.parentProfile.update({
 console.log("Seeded contacts for parent@sios.test");
 
 // Dummy Form Responses
-type FormResponseSeed = {status: "COMPLETED", title: "Dummy Form", userID: number}
-type FormResponseQuestionSeed = {formResponseID: number, questionText: string, answerText: string}
 
 console.log("Clearing pre-existing form response info...")
 await prisma.formResponseQuestion.deleteMany()
@@ -94,9 +92,11 @@ await prisma.formResponse.deleteMany()
 console.log("Creating form responses...")
 await prisma.formResponse.createMany({
   data: [
-    {status: "COMPLETED", title: "Dummy Form Res A", userID: 4},
-    {status: "COMPLETED", title: "Dummy Form Res B", userID: 4},
-    {title: "Incomplete Dummy Form Res", userID: 4}
+    {
+      status: "COMPLETED", title: "Dummy Form Res A", userID: 4, assignedName: "Pat Parent"
+    },
+    {status: "COMPLETED", title: "Dummy Form Res B", userID: 4, assignedName: "Pat Parent"},
+    {title: "Incomplete Dummy Form Res", userID: 4, assignedName: "Pat Parent"}
   ]
 })
 

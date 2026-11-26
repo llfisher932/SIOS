@@ -12,6 +12,7 @@ import ProfileDetail from "./views/ProfileDetail";
 import FormResponseBrowser from "./views/FormResponseBrowser";
 import FormTemplateList from "./views/FormTemplateList"
 import FormTemplateManager from "./views/FormTemplateManager";
+import FormResponseView from "./views/FormResponseView";
 
 function App() {
   return (
@@ -30,7 +31,9 @@ function App() {
               <Route path="/profile" element={<ProfileDetail />} />
               <Route path="/profiles" element={<ProfileSearch />} />
               <Route path="/profiles/:id" element={<ProfileDetail />} />
+              
               <Route path="/formdata" element={<FormResponseBrowser />} />
+              <Route path="/formdata/:id" element={<FormResponseView />} />
 
               <Route path="/formTemplates" element={<FormTemplateList />} />
               <Route path="/formTemplateManager" element={<FormTemplateManager />} />
